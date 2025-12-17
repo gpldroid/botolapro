@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <title>مشغل IPTV مع لائحة جانبية | استيراد M3U</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="مشغل IPTV يستورد القنوات تلقائيًا من ملف M3U ويعرضها في لائحة جانبية تفاعلية." />
+
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.15/dist/hls.min.js"></script>
+  <style>
+    body{margin:0;font-family:Tahoma,Arial,sans-serif;background:#0f172a;color:#e5e7eb}
+    h1{text-align:center;font-size:20px;margin:10px}
+    p{text-align:center;font-size:14px;color:#9ca3af}
+    .app{display:flex;height:calc(100vh - 120px)}
+    .sidebar{width:320px;background:#020617;border-left:1px solid #1e293b;overflow-y:auto}
+    .sidebar h2{margin:0;padding:10px;font-size:16px;border-bottom:1px solid #1e293b}
+    .sidebar ul{list-style:none;padding:0;margin:0}
+    .sidebar li{padding:10px;border-bottom:1px solid #1e293b;cursor:pointer;font-size:14px}
+    .sidebar li:hover{background:#1e293b}
+    .player{flex:1;background:black;display:flex;align-items:center;justify-content:center}
+    video{width:100%;height:100%;background:black}
+    footer{text-align:center;font-size:12px;color:#9ca3af;border-top:1px solid #1e293b;padding:6px}
+  </style>
+</head>
+<body>
+
+<h1>📺 مشغل IPTV – استيراد تلقائي من M3U</h1>
+<p>يتم جلب القنوات مباشرة من ملف M3U وعرضها في لائحة جانبية.</p>
+<hr>
+
+<div style="display:flex; gap:10px;">
+
+  <!-- Sidebar -->
+  <div style="width:35%; max-height:400px; overflow:auto; border:1px solid #ccc; padding:5px;">
+    <strong>📂 قائمة القنوات</strong>
+    <ul id="channelList"></ul>
+  </div>
+
+  <!-- Player -->
+  <div style="width:65%;">
+    <video id="player" controls autoplay playsinline width="100%" height="360"></video>
+  </div>
+
+</div>
+
+<script>
+const M3U_URL = 'https://iptv-org.github.io/iptv/index.language.m3u';
+let hls;
+
+fetch(M3U_URL)
+  .then(res => res.text())
+  .then(data => parseM3U(data));
+
+function parseM3U(content) {
+  const lines = content.split('\n');
+  const list = document.getElementById('channelList');
+  list.innerHTML = '';
+
+  let name = '';
+
+  lines.forEach(line => {
+    line = line.trim();
+
+    if (line.startsWith('#EXTINF')) {
+      name = line.split(',').pop();
+    }
+
+    if (line.startsWith('http')) {
+      const li = document.createElement('li');
+      li.textContent = name || 'قناة بدون اسم';
+      li.style.cursor = 'pointer';
+      li.onclick = () => play(line);
+      list.appendChild(li);
+    }
+  });
+}
+
+function play(url) {
+  const video = document.getElementById('player');
+
+  if (hls) hls.destroy();
+
+  if (Hls.isSupported()) {
+    hls = new Hls({ enableWorker:true, lowLatencyMode:true });
+    hls.loadSource(url);
+    hls.attachMedia(video);
+  } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+    video.src = url;
+  } else {
+    alert('المتصفح لا يدعم HLS');
+  }
+}
+</script>
+
+<hr>
+<footer>
+  <p>© 2025 IPTV Player | مصدر القنوات: iptv-org</p>
+</footer>
+
+</body>
+</html>
