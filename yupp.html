@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  
+  <!-- SEO Meta Tags -->
+  <title>مشغل IPTV مجاني | بث مباشر للقنوات العربية والعالمية</title>
+  <meta name="description" content="مشغل IPTV احترافي مجاني يدعم بث القنوات التلفزيونية المباشرة بجودة عالية. مشاهدة آلاف القنوات العربية والعالمية مجاناً.">
+  <meta name="keywords" content="IPTV, مشغل IPTV, قنوات مباشرة, بث مباشر, قنوات عربية, M3U">
+  <meta name="author" content="IPTV Player">
+  <meta name="robots" content="index, follow">
+  
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="مشغل IPTV مجاني - بث مباشر للقنوات">
+  <meta property="og:description" content="شاهد آلاف القنوات التلفزيونية مجاناً بجودة عالية">
+  <meta property="og:image" content="https://via.placeholder.com/1200x630/0f172a/ffffff?text=IPTV+Player">
+  
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="مشغل IPTV مجاني">
+  <meta name="twitter:description" content="بث مباشر لآلاف القنوات العربية والعالمية">
+  
+  <!-- Theme Color -->
+  <meta name="theme-color" content="#0f172a">
+  
+  <!-- Preconnect for Performance -->
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
+  <link rel="preconnect" href="https://iptv-org.github.io">
+  <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+  
+  <!-- Favicon -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>📺</text></svg>">
+  
+  <!-- Preload HLS.js -->
+  <link rel="preload" as="script" href="https://cdn.jsdelivr.net/npm/hls.js@1.5.15/dist/hls.min.js">
+  
+  <style>
+    /* CSS Variables للتحكم السهل بالألوان */
+    :root {
+      --primary-bg: #0f172a;
+      --secondary-bg: #020617;
+      --border-color: #1e293b;
+      --text-primary: #e5e7eb;
+      --text-secondary: #9ca3af;
+      --hover-bg: #1e293b;
+      --accent-color: #3b82f6;
+      --sidebar-width: 320px;
+    }
+
+    /* Reset & Base Styles */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+      background: var(--primary-bg);
+      color: var(--text-primary);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* Header */
+    .header {
+      text-align: center;
+      padding: 20px 15px;
+      background: linear-gradient(135deg, var(--secondary-bg) 0%, var(--primary-bg) 100%);
+      border-bottom: 2px solid var(--border-color);
+    }
+
+    h1 {
+      font-size: clamp(18px, 4vw, 24px);
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    .subtitle {
+      font-size: clamp(12px, 2.5vw, 14px);
+      color: var(--text-secondary);
+      margin: 5px 0;
+    }
+
+    /* Search Box */
+    .search-container {
+      max-width: 500px;
+      margin: 15px auto 0;
+      padding: 0 15px;
+    }
+
+    .search-box {
+      width: 100%;
+      padding: 12px 40px 12px 15px;
+      border: 2px solid var(--border-color);
+      border-radius: 8px;
+      background: var(--secondary-bg);
+      color: var(--text-primary);
+      font-size: 14px;
+      transition: all 0.3s ease;
+      outline: none;
+    }
+
+    .search-box:focus {
+      border-color: var(--accent-color);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+
+    /* App Container */
+    .app {
+      display: flex;
+      flex-direction: row;
+      min-height: calc(100vh - 250px);
+      margin: 0;
+      gap: 0;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: var(--sidebar-width);
+      background: var(--secondary-bg);
+      border-left: 1px solid var(--border-color);
+      overflow-y: auto;
+      overflow-x: hidden;
+      transition: transform 0.3s ease;
+    }
+
+    .sidebar-header {
+      position: sticky;
+      top: 0;
+      background: var(--secondary-bg);
+      padding: 15px;
+      border-bottom: 2px solid var(--border-color);
+      z-index: 10;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .sidebar-header h2 {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .channel-count {
+      background: var(--accent-color);
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: bold;
+    }
+
+    .channel-list {
+      list-style: none;
+    }
+
+    .channel-item {
+      padding: 15px;
+      border-bottom: 1px solid var(--border-color);
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      word-break: break-word;
+    }
+
+    .channel-item:hover {
+      background: var(--hover-bg);
+      padding-right: 20px;
+    }
+
+    .channel-item.active {
+      background: var(--accent-color);
+      border-right: 4px solid #60a5fa;
+    }
+
+    .channel-item::before {
+      content: '▶';
+      font-size: 10px;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .channel-item:hover::before,
+    .channel-item.active::before {
+      opacity: 1;
+    }
+
+    /* Player Container */
+    .player-container {
+      flex: 1;
+      background: #000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      min-height: 400px;
+    }
+
+    video {
+      width: 100%;
+      height: 100%;
+      max-height: 80vh;
+      background: #000;
+      outline: none;
+    }
+
+    .player-placeholder {
+      text-align: center;
+      color: var(--text-secondary);
+      padding: 40px 20px;
+    }
+
+    .player-placeholder svg {
+      width: 80px;
+      height: 80px;
+      margin-bottom: 20px;
+      opacity: 0.3;
+    }
+
+    /* Loading Spinner */
+    .loading {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      display: none;
+    }
+
+    .loading.active {
+      display: block;
+    }
+
+    .spinner {
+      border: 4px solid rgba(255, 255, 255, 0.1);
+      border-top: 4px solid var(--accent-color);
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Mobile Menu Toggle */
+    .menu-toggle {
+      display: none;
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      z-index: 1000;
+      background: var(--accent-color);
+      color: white;
+      border: none;
+      padding: 15px;
+      border-radius: 50%;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      font-size: 20px;
+      width: 60px;
+      height: 60px;
+      transition: transform 0.3s ease;
+    }
+
+    .menu-toggle:active {
+      transform: scale(0.95);
+    }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-secondary);
+      border-top: 1px solid var(--border-color);
+      padding: 15px;
+      background: var(--secondary-bg);
+    }
+
+    footer a {
+      color: var(--accent-color);
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+
+    /* Scrollbar Styles */
+    .sidebar::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .sidebar::-webkit-scrollbar-track {
+      background: var(--secondary-bg);
+    }
+
+    .sidebar::-webkit-scrollbar-thumb {
+      background: var(--border-color);
+      border-radius: 4px;
+    }
+
+    .sidebar::-webkit-scrollbar-thumb:hover {
+      background: var(--hover-bg);
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      :root {
+        --sidebar-width: 280px;
+      }
+
+      .app {
+        flex-direction: column;
+      }
+
+      .sidebar {
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        width: var(--sidebar-width);
+        transform: translateX(100%);
+        z-index: 999;
+        box-shadow: -4px 0 12px rgba(0, 0, 0, 0.5);
+      }
+
+      .sidebar.active {
+        transform: translateX(0);
+      }
+
+      .menu-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .player-container {
+        width: 100%;
+        min-height: 300px;
+      }
+
+      video {
+        max-height: 50vh;
+      }
+
+      .header {
+        padding: 15px 10px;
+      }
+
+      .search-container {
+        padding: 0 10px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      :root {
+        --sidebar-width: 100%;
+      }
+
+      h1 {
+        font-size: 16px;
+      }
+
+      .subtitle {
+        font-size: 11px;
+      }
+
+      .channel-item {
+        padding: 12px;
+        font-size: 13px;
+      }
+
+      .menu-toggle {
+        width: 50px;
+        height: 50px;
+        font-size: 18px;
+      }
+    }
+
+    /* Dark Mode Enhancement */
+    @media (prefers-color-scheme: dark) {
+      body {
+        background: var(--primary-bg);
+      }
+    }
+
+    /* Reduced Motion */
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    /* Print Styles */
+    @media print {
+      .sidebar,
+      .menu-toggle,
+      video {
+        display: none;
+      }
+    }
+
+    /* No Results Message */
+    .no-results {
+      padding: 30px 20px;
+      text-align: center;
+      color: var(--text-secondary);
+      display: none;
+    }
+
+    .no-results.active {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="header">
+    <h1>📺 مشغل IPTV – بث مباشر للقنوات</h1>
+    <p class="subtitle">شاهد آلاف القنوات التلفزيونية العربية والعالمية مجاناً بجودة عالية</p>
+    
+    <!-- Search Box -->
+    <div class="search-container">
+      <input 
+        type="search" 
+        id="searchBox" 
+        class="search-box" 
+        placeholder="🔍 ابحث عن قناة..." 
+        aria-label="بحث في القنوات"
+      >
+    </div>
+  </header>
+
+  <!-- App Container -->
+  <div class="app">
+    
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar" role="navigation" aria-label="قائمة القنوات">
+      <div class="sidebar-header">
+        <h2>📂 قائمة القنوات</h2>
+        <span class="channel-count" id="channelCount">0</span>
+      </div>
+      <ul class="channel-list" id="channelList"></ul>
+      <div class="no-results" id="noResults">
+        <p>لم يتم العثور على نتائج</p>
+      </div>
+    </aside>
+
+    <!-- Player -->
+    <main class="player-container" role="main">
+      <div class="player-placeholder" id="placeholder">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M21 6h-7.59l3.29-3.29L16 2l-4 4-4-4-.71.71L10.59 6H3c-1.1 0-2 .89-2 2v12c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V8c0-1.11-.9-2-2-2zm0 14H3V8h18v12zM9 10v8l7-4z"/>
+        </svg>
+        <h3>اختر قناة من القائمة للبدء</h3>
+        <p>يتم تحميل القنوات...</p>
+      </div>
+      <video 
+        id="player" 
+        controls 
+        playsinline 
+        preload="metadata"
+        aria-label="مشغل الفيديو"
+        style="display:none"
+      ></video>
+      <div class="loading" id="loading">
+        <div class="spinner"></div>
+      </div>
+    </main>
+
+  </div>
+
+  <!-- Mobile Menu Toggle -->
+  <button class="menu-toggle" id="menuToggle" aria-label="فتح قائمة القنوات">
+    📱
+  </button>
+
+  <!-- Footer -->
+  <footer>
+    <p>
+      © 2025 مشغل IPTV | 
+      مصدر القنوات: <a href="https://github.com/iptv-org/iptv" target="_blank" rel="noopener">iptv-org</a> | 
+      جميع الحقوق محفوظة
+    </p>
+  </footer>
+
+  <!-- HLS.js Script -->
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.15/dist/hls.min.js" defer></script>
+  
+  <!-- Main Script -->
+  <script>
+    // Configuration
+    const CONFIG = {
+      M3U_URL: 'https://iptv-org.github.io/iptv/index.language.m3u',
+      CACHE_DURATION: 3600000, // 1 hour
+      RETRY_ATTEMPTS: 3,
+      RETRY_DELAY: 2000
+    };
+
+    // State
+    let hls = null;
+    let channels = [];
+    let currentChannel = null;
+
+    // DOM Elements
+    const elements = {
+      channelList: document.getElementById('channelList'),
+      player: document.getElementById('player'),
+      placeholder: document.getElementById('placeholder'),
+      loading: document.getElementById('loading'),
+      searchBox: document.getElementById('searchBox'),
+      channelCount: document.getElementById('channelCount'),
+      sidebar: document.getElementById('sidebar'),
+      menuToggle: document.getElementById('menuToggle'),
+      noResults: document.getElementById('noResults')
+    };
+
+    // Initialize App
+    function init() {
+      loadChannels();
+      setupEventListeners();
+      checkCache();
+    }
+
+    // Setup Event Listeners
+    function setupEventListeners() {
+      // Search functionality
+      elements.searchBox.addEventListener('input', debounce(handleSearch, 300));
+      
+      // Mobile menu toggle
+      elements.menuToggle.addEventListener('click', toggleSidebar);
+      
+      // Close sidebar on channel select (mobile)
+      elements.channelList.addEventListener('click', (e) => {
+        if (window.innerWidth <= 768 && e.target.classList.contains('channel-item')) {
+          toggleSidebar();
+        }
+      });
+
+      // Player error handling
+      elements.player.addEventListener('error', handlePlayerError);
+      
+      // Keyboard shortcuts
+      document.addEventListener('keydown', handleKeyboard);
+    }
+
+    // Load Channels from M3U
+    async function loadChannels(retryCount = 0) {
+      try {
+        showLoading(true);
+        
+        const response = await fetch(CONFIG.M3U_URL);
+        if (!response.ok) throw new Error('فشل تحميل القنوات');
+        
+        const data = await response.text();
+        channels = parseM3U(data);
+        
+        if (channels.length === 0) {
+          throw new Error('لم يتم العثور على قنوات');
+        }
+        
+        renderChannels(channels);
+        cacheChannels(channels);
+        updatePlaceholder('اختر قناة من القائمة للبدء');
+        
+      } catch (error) {
+        console.error('Error loading channels:', error);
+        
+        if (retryCount < CONFIG.RETRY_ATTEMPTS) {
+          setTimeout(() => loadChannels(retryCount + 1), CONFIG.RETRY_DELAY);
+        } else {
+          loadFromCache() || updatePlaceholder('فشل تحميل القنوات. يرجى تحديث الصفحة.');
+        }
+      } finally {
+        showLoading(false);
+      }
+    }
+
+    // Parse M3U Content
+    function parseM3U(content) {
+      const lines = content.split('\n');
+      const channelList = [];
+      let currentName = '';
+
+      lines.forEach(line => {
+        line = line.trim();
+
+        if (line.startsWith('#EXTINF')) {
+          // Extract channel name
+          const match = line.match(/,(.+)$/);
+          currentName = match ? match[1].trim() : 'قناة بدون اسم';
+        }
+
+        if (line.startsWith('http')) {
+          channelList.push({
+            name: currentName || 'قناة بدون اسم',
+            url: line,
+            id: generateId()
+          });
+          currentName = '';
+        }
+      });
+
+      return channelList;
+    }
+
+    // Render Channels
+    function renderChannels(channelList) {
+      elements.channelList.innerHTML = '';
+      elements.channelCount.textContent = channelList.length;
+
+      if (channelList.length === 0) {
+        elements.noResults.classList.add('active');
+        return;
+      }
+
+      elements.noResults.classList.remove('active');
+
+      const fragment = document.createDocumentFragment();
+
+      channelList.forEach(channel => {
+        const li = document.createElement('li');
+        li.className = 'channel-item';
+        li.textContent = channel.name;
+        li.setAttribute('data-id', channel.id);
+        li.setAttribute('role', 'button');
+        li.setAttribute('tabindex', '0');
+        li.onclick = () => playChannel(channel);
+        li.onkeypress = (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            playChannel(channel);
+          }
+        };
+        fragment.appendChild(li);
+      });
+
+      elements.channelList.appendChild(fragment);
+    }
+
+    // Play Channel
+    function playChannel(channel) {
+      if (currentChannel?.id === channel.id) return;
+
+      currentChannel = channel;
+      updateActiveChannel(channel.id);
+      showLoading(true);
+
+      elements.placeholder.style.display = 'none';
+      elements.player.style.display = 'block';
+
+      if (hls) {
+        hls.destroy();
+      }
+
+      if (Hls.isSupported()) {
+        hls = new Hls({
+          enableWorker: true,
+          lowLatencyMode: true,
+          backBufferLength: 90,
+          maxBufferLength: 30,
+          maxMaxBufferLength: 60
+        });
+
+        hls.loadSource(channel.url);
+        hls.attachMedia(elements.player);
+
+        hls.on(Hls.Events.MANIFEST_PARSED, () => {
+          elements.player.play().catch(handlePlayError);
+          showLoading(false);
+        });
+
+        hls.on(Hls.Events.ERROR, (event, data) => {
+          if (data.fatal) {
+            handleHlsError(data);
+          }
+        });
+
+      } else if (elements.player.canPlayType('application/vnd.apple.mpegurl')) {
+        elements.player.src = channel.url;
+        elements.player.play().catch(handlePlayError);
+        showLoading(false);
+      } else {
+        alert('المتصفح لا يدعم تشغيل HLS');
+        showLoading(false);
+      }
+    }
+
+    // Handle HLS Errors
+    function handleHlsError(data) {
+      console.error('HLS Error:', data);
+      showLoading(false);
+      
+      switch(data.type) {
+        case Hls.ErrorTypes.NETWORK_ERROR:
+          alert('خطأ في الشبكة. يرجى التحقق من الاتصال.');
+          break;
+        case Hls.ErrorTypes.MEDIA_ERROR:
+          hls.recoverMediaError();
+          break;
+        default:
+          alert('خطأ في تشغيل القناة. جرب قناة أخرى.');
+          break;
+      }
+    }
+
+    // Update Active Channel
+    function updateActiveChannel(id) {
+      document.querySelectorAll('.channel-item').forEach(item => {
+        item.classList.remove('active');
+      });
+      document.querySelector(`[data-id="${id}"]`)?.classList.add('active');
+    }
+
+    // Handle Search
+    function handleSearch(e) {
+      const query = e.target.value.toLowerCase().trim();
+      
+      if (!query) {
+        renderChannels(channels);
+        return;
+      }
+
+      const filtered = channels.filter(channel => 
+        channel.name.toLowerCase().includes(query)
+      );
+      
+      renderChannels(filtered);
+    }
+
+    // Toggle Sidebar (Mobile)
+    function toggleSidebar() {
+      elements.sidebar.classList.toggle('active');
+    }
+
+    // Show/Hide Loading
+    function showLoading(show) {
+      elements.loading.classList.toggle('active', show);
+    }
+
+    // Update Placeholder
+    function updatePlaceholder(message) {
+      const p = elements.placeholder.querySelector('p');
+      if (p) p.textContent = message;
+    }
+
+    // Handle Player Error
+    function handlePlayerError() {
+      console.error('Player error');
+      showLoading(false);
+      alert('خطأ في تشغيل الفيديو');
+    }
+
+    // Handle Play Error
+    function handlePlayError(error) {
+      console.error('Play error:', error);
+      showLoading(false);
+    }
+
+    // Keyboard Shortcuts
+    function handleKeyboard(e) {
+      if (e.key === 'Escape' && elements.sidebar.classList.contains('active')) {
+        toggleSidebar();
+      }
+    }
+
+    // Cache Functions
+    function cacheChannels(data) {
+      try {
+        localStorage.setItem('iptv_channels', JSON.stringify({
+          data,
+          timestamp: Date.now()
+        }));
+      } catch (e) {
+        console.error('Cache error:', e);
+      }
+    }
+
+    function loadFromCache() {
+      try {
+        const cached = localStorage.getItem('iptv_channels');
+        if (!cached) return false;
+
+        const { data, timestamp } = JSON.parse(cached);
+        if (Date.now() - timestamp > CONFIG.CACHE_DURATION) return false;
+
+        channels = data;
+        renderChannels(channels);
+        return true;
+      } catch (e) {
+        return false;
+      }
+    }
+
+    function checkCache() {
+      loadFromCache();
+    }
+
+    // Utility Functions
+    function debounce(func, wait) {
+      let timeout;
+      return function executedFunction(...args) {
+        const later = () => {
+          clearTimeout(timeout);
+          func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+      };
+    }
+
+    function generateId() {
+      return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    }
+
+    // Initialize on DOM Ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+
+    // Service Worker Registration (Optional for PWA)
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        // Uncomment to enable service worker
+        // navigator.serviceWorker.register('/sw.js');
+      });
+    }
+  </script>
+
+  <!-- Schema.org Structured Data for SEO -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "مشغل IPTV",
+    "description": "مشغل IPTV مجاني لبث القنوات التلفزيونية المباشرة",
+    "applicationCategory": "MultimediaApplication",
+    "operatingSystem": "Any",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "4.5",
+      "ratingCount": "1250"
+    }
+  }
+  </script>
+
+</body>
+</html> 
