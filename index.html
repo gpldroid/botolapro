@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IPTV Pro - مشغل قنوات احترافي</title>
+    <title>IPTV Pro - عماد الدين لمراني - مشغل قنوات احترافي</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
@@ -1749,9 +1749,9 @@
                 if (pageName === 'player' && channels.length === 0) {
                     setTimeout(() => {
                         if (document.getElementById('categoryDropdown').value === '') {
-                            document.getElementById('categoryDropdown').value = 'https://iptv-org.github.io/iptv/languages/ara.m3u';
+                            document.getElementById('categoryDropdown').value = 'https://iptv-org.github.io/iptv/index.m3u';
                             showStatus('جاري تحميل القنوات العربية...', 'info');
-                            fetchAndPopulatePlaylist('https://iptv-org.github.io/iptv/languages/ara.m3u');
+                            fetchAndPopulatePlaylist('https://iptv-org.github.io/iptv/index.m3u');
                         }
                     }, 500);
                 }
