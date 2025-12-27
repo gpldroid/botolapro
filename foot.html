@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kooralist PRO | النسخة المتكاملة</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Tajawal', 'sans-serif'] },
+                    colors: { netflix: '#E50914', darkBg: '#141414', cardBg: '#1f1f1f' }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #E50914; border-radius: 10px; }
+        .sidebar-scroll { height: 500px; overflow-y: auto; }
+        .dark body { background-color: #141414; color: white; }
+        .light body { background-color: #f8f9fa; color: #1d1d1f; }
+        .match-card { transition: all 0.3s ease; }
+        .match-card:hover { transform: scale(1.02); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+    </style>
+</head>
+<body class="antialiased transition-colors duration-500">
+
+    <nav class="sticky top-0 z-[100] bg-black border-b border-white/10 p-4">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <i class="ph-fill ph-soccer-ball text-netflix text-3xl"></i>
+                <h1 class="text-netflix text-2xl font-black italic tracking-tighter uppercase">Kooralist</h1>
+            </div>
+            <button onclick="toggleTheme()" class="p-2 rounded-full bg-white/5 hover:bg-white/10 transition">
+                <i id="theme-icon" class="ph ph-moon text-xl text-white"></i>
+            </button>
+        </div>
+    </nav>
+
+    <main class="container mx-auto px-4 py-8">
+        
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-0 bg-black rounded-[2.5rem] overflow-hidden border border-white/10 shadow-2xl mb-16">
+            <div class="lg:col-span-3 bg-black relative aspect-video">
+                <video id="video-player" class="w-full h-full" controls poster="https://i.imgur.com/3s2mPaR.png"></video>
+                <div id="player-msg" class="absolute inset-0 flex flex-col items-center justify-center bg-black/80 z-10">
+                    <i class="ph ph-play-circle text-7xl text-netflix animate-pulse mb-3"></i>
+                    <p class="font-black text-xl">اختر قناة للاستمتاع بالبث</p>
+                </div>
+            </div>
+            <div class="lg:col-span-1 flex flex-col bg-[#111]">
+                <div class="p-5 border-b border-white/5">
+                    <input type="text" id="channel-search" onkeyup="iptv.filterChannels()" placeholder="بحث سريع..." 
+                           class="w-full bg-black border border-white/10 rounded-xl py-3 pr-10 pl-3 text-sm outline-none focus:border-netflix">
+                </div>
+                <div id="channels-list" class="sidebar-scroll custom-scrollbar p-3 space-y-1"></div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 xl:grid-cols-3 gap-12">
+            
+            <div class="xl:col-span-2">
+                <div class="flex flex-col md:flex-row justify-between items-end mb-8 gap-4 border-r-4 border-netflix pr-5">
+                    <div>
+                        <span class="text-netflix font-bold text-xs uppercase tracking-[0.3em]">Live Feed</span>
+                        <h2 class="text-4xl font-black tracking-tighter">مباريات اليوم</h2>
+                    </div>
+                    <div class="flex items-center gap-4 bg-white/5 p-2 rounded-2xl border border-white/10">
+                        <button onclick="app.dates.change(-1)" class="p-2 hover:text-netflix transition"><i class="ph-bold ph-caret-right"></i></button>
+                        <input type="date" id="date-picker" onchange="app.dates.set(this.value)" class="bg-transparent font-bold outline-none text-sm cursor-pointer">
+                        <button onclick="app.dates.change(1)" class="p-2 hover:text-netflix transition"><i class="ph-bold ph-caret-left"></i></button>
+                    </div>
+                </div>
+
+                <div id="matches-container" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="h-48 bg-white/5 animate-pulse rounded-[2rem]"></div>
+                    <div class="h-48 bg-white/5 animate-pulse rounded-[2rem]"></div>
+                </div>
+            </div>
+
+            <div class="xl:col-span-1">
+                <div class="mb-8">
+                    <span class="text-netflix font-bold text-xs uppercase tracking-[0.3em]">League Table</span>
+                    <h2 class="text-4xl font-black tracking-tighter">ترتيب الفرق</h2>
+                </div>
+
+                <div class="bg-cardBg rounded-[2rem] border border-white/10 p-6 overflow-hidden shadow-2xl">
+                    <div class="flex gap-2 overflow-x-auto pb-4 mb-4 custom-scrollbar">
+                        <button onclick="app.fetchStandings(39)" class="shrink-0 px-4 py-2 rounded-full bg-netflix text-white text-xs font-bold">Premier League</button>
+                        <button onclick="app.fetchStandings(140)" class="shrink-0 px-4 py-2 rounded-full bg-white/5 hover:bg-white/10 text-xs font-bold transition">La Liga</button>
+                    </div>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-right">
+                            <thead class="text-gray-500 border-b border-white/5">
+                                <tr>
+                                    <th class="pb-3 pr-2">#</th>
+                                    <th class="pb-3">الفريق</th>
+                                    <th class="pb-3 text-center">ل</th>
+                                    <th class="pb-3 text-center">+/-</th>
+                                    <th class="pb-3 text-center">ن</th>
+                                </tr>
+                            </thead>
+                            <tbody id="standings-body" class="divide-y divide-white/5">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const CONFIG = {
+            API_KEY: '219afb927d14c7f9ba7132adf83e0a4f',
+            API_HOST: 'v3.football.api-sports.io'
+        };
+
+        function toggleTheme() {
+            const isDark = document.documentElement.classList.toggle('dark');
+            document.getElementById('theme-icon').className = isDark ? 'ph ph-moon text-xl text-white' : 'ph ph-sun text-xl text-yellow-500';
+        }
+
+        const iptv = {
+            channels: [],
+            hls: null,
+            async init() {
+                const res = await fetch('https://iptv-org.github.io/iptv/languages/ara.m3u');
+                const text = await res.text();
+                this.parse(text);
+            },
+            parse(data) {
+                const lines = data.split('\n');
+                let current = {};
+                lines.forEach(line => {
+                    if (line.startsWith('#EXTINF:')) {
+                        current.name = line.split(',')[1]?.trim() || 'TV';
+                        current.logo = line.match(/tvg-logo="([^"]*)"/)?.[1] || '';
+                    } else if (line.startsWith('http')) {
+                        current.url = line.trim();
+                        this.channels.push(current);
+                        current = {};
+                    }
+                });
+                this.render();
+            },
+            render(list = this.channels) {
+                document.getElementById('channels-list').innerHTML = list.slice(0, 100).map(ch => `
+                    <div onclick="iptv.play('${ch.url}', this)" class="flex items-center gap-3 p-3 cursor-pointer rounded-2xl hover:bg-white/5 group transition-all">
+                        <img src="${ch.logo}" onerror="this.src='https://via.placeholder.com/40?text=TV'" class="w-10 h-10 object-contain rounded-lg bg-black/40">
+                        <span class="text-xs font-bold text-gray-400 group-hover:text-white truncate">${ch.name}</span>
+                    </div>
+                `).join('');
+            },
+            play(url, el) {
+                document.querySelectorAll('#channels-list div').forEach(d => d.classList.remove('bg-netflix/20', 'border-r-4', 'border-netflix'));
+                el.classList.add('bg-netflix/20', 'border-r-4', 'border-netflix');
+                document.getElementById('player-msg').style.display = 'none';
+                const video = document.getElementById('video-player');
+                if (Hls.isSupported()) {
+                    if (this.hls) this.hls.destroy();
+                    this.hls = new Hls();
+                    this.hls.loadSource(url);
+                    this.hls.attachMedia(video);
+                    this.hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
+                } else { video.src = url; video.play(); }
+            },
+            filterChannels() {
+                const q = document.getElementById('channel-search').value.toLowerCase();
+                this.render(this.channels.filter(c => c.name.toLowerCase().includes(q)));
+            }
+        };
+
+        const app = {
+            state: { currentDate: new Date().toISOString().split('T')[0] },
+            
+            async fetchMatches() {
+                try {
+                    const res = await fetch(`https://${CONFIG.API_HOST}/fixtures?date=${this.state.currentDate}&timezone=Africa/Casablanca`, {
+                        headers: { "x-rapidapi-key": CONFIG.API_KEY, "x-rapidapi-host": CONFIG.API_HOST }
+                    });
+                    const data = await res.json();
+                    this.renderMatches(data.response);
+                } catch (e) { console.error("Error fetching matches"); }
+            },
+
+            async fetchStandings(leagueId) {
+                const body = document.getElementById('standings-body');
+                body.innerHTML = `<tr><td colspan="5" class="py-10 text-center animate-pulse">جاري التحميل...</td></tr>`;
+                try {
+                    const res = await fetch(`https://${CONFIG.API_HOST}/standings?league=${leagueId}&season=2024`, {
+                        headers: { "x-rapidapi-key": CONFIG.API_KEY, "x-rapidapi-host": CONFIG.API_HOST }
+                    });
+                    const data = await res.json();
+                    this.renderStandings(data.response[0].league.standings[0]);
+                } catch (e) { body.innerHTML = "خطأ في الاتصال"; }
+            },
+
+            renderMatches(matches) {
+                const container = document.getElementById('matches-container');
+                if (!matches.length) {
+                    container.innerHTML = `<div class="col-span-full py-20 text-center text-gray-500 font-bold">لا توجد مباريات متاحة</div>`;
+                    return;
+                }
+                container.innerHTML = matches.slice(0, 10).map(m => {
+                    const isLive = ['1H','HT','2H','ET','P'].includes(m.fixture.status.short);
+                    return `
+                    <div class="match-card bg-cardBg p-6 rounded-[2.5rem] border border-white/5 flex flex-col shadow-xl">
+                        <div class="flex justify-between items-center mb-6 text-[10px] font-black uppercase tracking-widest text-gray-500">
+                            <span class="truncate max-w-[150px]">${m.league.name}</span>
+                            ${isLive ? '<span class="text-netflix animate-pulse">● LIVE</span>' : `<span>${m.fixture.status.long}</span>`}
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div class="flex flex-col items-center flex-1">
+                                <img src="${m.teams.home.logo}" class="w-14 h-14 mb-3 object-contain">
+                                <span class="text-xs font-black text-center">${m.teams.home.name}</span>
+                            </div>
+                            <div class="flex flex-col items-center px-6">
+                                <span class="text-3xl font-black">${m.goals.home ?? ''} - ${m.goals.away ?? ''}</span>
+                                <span class="text-[10px] mt-3 font-bold text-gray-500">${isLive ? m.fixture.status.elapsed + "'" : new Date(m.fixture.date).toLocaleTimeString('ar-EG', {hour:'2-digit', minute:'2-digit'})}</span>
+                            </div>
+                            <div class="flex flex-col items-center flex-1">
+                                <img src="${m.teams.away.logo}" class="w-14 h-14 mb-3 object-contain">
+                                <span class="text-xs font-black text-center">${m.teams.away.name}</span>
+                            </div>
+                        </div>
+                    </div>`;
+                }).join('');
+            },
+
+            renderStandings(standings) {
+                document.getElementById('standings-body').innerHTML = standings.map(s => `
+                    <tr class="hover:bg-white/5 transition group">
+                        <td class="py-4 pr-2 font-black text-gray-500 group-hover:text-netflix">${s.rank}</td>
+                        <td class="py-4">
+                            <div class="flex items-center gap-2">
+                                <img src="${s.team.logo}" class="w-6 h-6 object-contain">
+                                <span class="font-bold text-xs truncate max-w-[100px]">${s.team.name}</span>
+                            </div>
+                        </td>
+                        <td class="py-4 text-center font-bold text-gray-400">${s.all.played}</td>
+                        <td class="py-4 text-center text-xs text-gray-500">${s.goalsDiff}</td>
+                        <td class="py-4 text-center font-black text-netflix">${s.points}</td>
+                    </tr>
+                `).join('');
+            },
+
+            dates: {
+                change(n) {
+                    const d = new Date(app.state.currentDate);
+                    d.setDate(d.getDate() + n);
+                    app.state.currentDate = d.toISOString().split('T')[0];
+                    document.getElementById('date-picker').value = app.state.currentDate;
+                    app.fetchMatches();
+                },
+                set(v) { app.state.currentDate = v; app.fetchMatches(); }
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            iptv.init();
+            app.fetchMatches();
+            app.fetchStandings(39); // ابدأ بالدوري الإنجليزي افتراضياً
+            document.getElementById('date-picker').value = app.state.currentDate;
+        });
+    </script>
+</body>
+</html>
