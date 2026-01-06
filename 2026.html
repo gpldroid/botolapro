@@ -1,0 +1,1173 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>بث مباشر - IPTV Stream</title>
+    
+    <!-- CDN Libraries -->
+    <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap">
+    
+    <style>
+        /* CSS Variables */
+        :root {
+            --primary-pink: #ff3366;
+            --primary-cyan: #00d2ff;
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            --text-primary: #2d3748;
+            --text-secondary: #4a5568;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f7fafc;
+            --bg-tertiary: #edf2f7;
+            --sidebar-width: 300px;
+            --transition: all 0.3s ease;
+            --border-radius: 12px;
+            --border-radius-lg: 20px;
+            --spacing-xs: 0.5rem;
+            --spacing-sm: 1rem;
+            --spacing-md: 1.5rem;
+            --spacing-lg: 2rem;
+            --spacing-xl: 3rem;
+        }
+
+        /* Dark Mode Variables */
+        [data-theme="dark"] {
+            --glass-bg: rgba(0, 0, 0, 0.2);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-primary: #f7fafc;
+            --text-secondary: #e2e8f0;
+            --bg-primary: #1a202c;
+            --bg-secondary: #2d3748;
+            --bg-tertiary: #4a5568;
+        }
+
+        /* Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+            color: var(--text-primary);
+            transition: var(--transition);
+            min-height: 100vh;
+            direction: rtl;
+        }
+
+        .english {
+            font-family: 'Inter', sans-serif;
+            direction: ltr;
+        }
+
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border-left: 1px solid var(--glass-border);
+            padding: var(--spacing-lg);
+            position: fixed;
+            height: 90vh;
+            overflow-y: scroll;
+            z-index: 1000;
+            transition: var(--transition);
+            box-shadow: var(--glass-shadow);
+        }
+
+        .sidebar-header {
+            text-align: center;
+            margin-bottom: var(--spacing-xl);
+            padding-bottom: var(--spacing-md);
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--spacing-sm);
+            font-size: 1.5rem;
+            font-weight: 900;
+            color: var(--primary-pink);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .logo i {
+            font-size: 2rem;
+            color: var(--primary-cyan);
+        }
+
+        .country-section {
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--primary-cyan);
+            margin-bottom: var(--spacing-md);
+            padding-bottom: var(--spacing-xs);
+            border-bottom: 2px solid var(--glass-border);
+        }
+
+        .country-list {
+            list-style: none;
+        }
+
+        .country-item {
+            padding: var(--spacing-sm);
+            margin-bottom: var(--spacing-xs);
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            background: var(--glass-bg);
+            border: 1px solid transparent;
+        }
+
+        .country-item:hover {
+            background: var(--glass-bg);
+            border-color: var(--primary-pink);
+            transform: translateX(-5px);
+        }
+
+        .country-item.active {
+            background: linear-gradient(135deg, var(--primary-pink), var(--primary-cyan));
+            color: white;
+        }
+
+        .country-flag {
+            font-size: 1.5rem;
+        }
+
+        .country-name {
+            flex: 1;
+            font-weight: 600;
+        }
+
+        .channel-count {
+            background: var(--glass-bg);
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            min-width: 30px;
+            text-align: center;
+        }
+
+        /* Navbar Styles */
+        .navbar {
+            position: fixed;
+            top: 0;
+            right: var(--sidebar-width);
+            left: 0;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            padding: var(--spacing-md) var(--spacing-lg);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--glass-border);
+            z-index: 900;
+            transition: var(--transition);
+        }
+
+        .search-container {
+            flex: 1;
+            max-width: 500px;
+            margin: 0 var(--spacing-lg);
+        }
+
+        .search-input {
+            width: 100%;
+            padding: var(--spacing-sm) var(--spacing-lg);
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 50px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary-cyan);
+            box-shadow: 0 0 0 3px rgba(0, 210, 255, 0.1);
+        }
+
+        .theme-toggle {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--text-primary);
+            cursor: pointer;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+        }
+
+        .theme-toggle:hover {
+            background: var(--glass-bg);
+            transform: rotate(30deg);
+        }
+
+        /* Main Content Styles */
+        .main-content {
+            flex: 1;
+            margin-right: var(--sidebar-width);
+            margin-top: 80px;
+            padding: var(--spacing-lg);
+        }
+
+        .player-section {
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .player-container {
+            background: var(--bg-tertiary);
+            border-radius: var(--border-radius-lg);
+            overflow: hidden;
+            box-shadow: var(--glass-shadow);
+        }
+
+        #video-player {
+            width: 100%;
+            height: 500px;
+            background: #000;
+        }
+
+        .channels-section {
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .section-header h2 {
+            font-size: 1.8rem;
+            color: var(--primary-pink);
+        }
+
+        .channels-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: var(--spacing-lg);
+        }
+
+        .channel-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border-radius: var(--border-radius-lg);
+            padding: var(--spacing-lg);
+            border: 1px solid var(--glass-border);
+            transition: var(--transition);
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .channel-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--glass-shadow);
+            border-color: var(--primary-cyan);
+        }
+
+        .channel-logo {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin: 0 auto var(--spacing-md);
+            background: linear-gradient(135deg, var(--primary-pink), var(--primary-cyan));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            color: white;
+            overflow: hidden;
+        }
+
+        .channel-logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .channel-name {
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: var(--spacing-xs);
+            color: var(--text-primary);
+            height: 2.8rem;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+
+        .channel-category {
+            color: var(--primary-cyan);
+            font-size: 0.9rem;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .play-button {
+            background: linear-gradient(135deg, var(--primary-pink), var(--primary-cyan));
+            color: white;
+            border: none;
+            padding: var(--spacing-sm) var(--spacing-lg);
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            width: 100%;
+        }
+
+        .play-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 20px rgba(255, 51, 102, 0.3);
+        }
+
+        /* Footer Styles */
+        .footer {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid var(--glass-border);
+            padding: var(--spacing-xl) var(--spacing-lg);
+            margin-top: auto;
+        }
+
+        .footer-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: var(--spacing-xl);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .footer-logo {
+            font-size: 1.8rem;
+            font-weight: 900;
+            color: var(--primary-pink);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .footer-links {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-sm);
+        }
+
+        .footer-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .footer-link:hover {
+            color: var(--primary-cyan);
+            transform: translateX(5px);
+        }
+
+        .copyright {
+            text-align: center;
+            padding-top: var(--spacing-lg);
+            border-top: 1px solid var(--glass-border);
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .developer-name {
+            color: var(--primary-pink);
+            font-weight: 700;
+        }
+
+        /* Notifications */
+        .notification-container {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .notification {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--border-radius);
+            padding: var(--spacing-md);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            transform: translateX(-100%);
+            opacity: 0;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            max-width: 350px;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        .notification.success {
+            border-right: 4px solid #48bb78;
+        }
+
+        .notification.error {
+            border-right: 4px solid #f56565;
+        }
+
+        .notification.warning {
+            border-right: 4px solid #ed8936;
+        }
+
+        .notification.info {
+            border-right: 4px solid var(--primary-cyan);
+        }
+
+        .notification-icon {
+            font-size: 1.5rem;
+        }
+
+        .notification-content {
+            flex: 1;
+        }
+
+        /* Loading States */
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: var(--spacing-xl);
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--glass-border);
+            border-top-color: var(--primary-cyan);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: var(--spacing-xl);
+            color: var(--text-secondary);
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            color: var(--glass-border);
+            margin-bottom: var(--spacing-md);
+        }
+
+        /* Mobile Sidebar Toggle */
+        .sidebar-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--text-primary);
+            cursor: pointer;
+            margin-left: var(--spacing-sm);
+        }
+
+        /* Responsive Styles */
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(100%);
+                right: 0;
+                left: auto;
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
+            }
+
+            .navbar {
+                right: 0;
+            }
+
+            .main-content {
+                margin-right: 0;
+            }
+
+            .sidebar-toggle {
+                display: block;
+            }
+
+            .channels-grid {
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            }
+        }
+
+        @media (max-width: 768px) {
+            .search-container {
+                display: none;
+            }
+
+            .player-container {
+                height: 300px;
+            }
+
+            #video-player {
+                height: 300px;
+            }
+
+            .channels-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                gap: var(--spacing-md);
+            }
+
+            .channel-card {
+                padding: var(--spacing-md);
+            }
+
+            .footer-content {
+                grid-template-columns: 1fr;
+                gap: var(--spacing-lg);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .main-content {
+                padding: var(--spacing-md);
+            }
+
+            .channels-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .section-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: var(--spacing-sm);
+            }
+        }
+
+        /* RTL Specific Styles */
+        [dir="rtl"] .sidebar {
+            border-left: 1px solid var(--glass-border);
+            border-right: none;
+        }
+
+        [dir="rtl"] .country-item:hover {
+            transform: translateX(5px);
+        }
+
+        [dir="rtl"] .notification {
+            border-right: none;
+            border-left: 4px solid;
+        }
+
+        [dir="rtl"] .footer-link:hover {
+            transform: translateX(-5px);
+        }
+
+        /* LTR Support for English */
+        [dir="ltr"] .sidebar {
+            border-right: 1px solid var(--glass-border);
+            border-left: none;
+        }
+
+        [dir="ltr"] .country-item:hover {
+            transform: translateX(-5px);
+        }
+
+        [dir="ltr"] .footer-link:hover {
+            transform: translateX(5px);
+        }
+    </style>
+</head>
+<body data-theme="light">
+    <!-- Notification Container -->
+    <div class="notification-container" id="notificationContainer"></div>
+
+    <div class="container">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="fas fa-satellite-dish"></i>
+                    <span>بث مباشر</span>
+                </div>
+                <p class="english">Live Stream</p>
+            </div>
+
+            <!-- Arabic Countries Section -->
+            <div class="country-section">
+                <h3 class="section-title">الدول العربية</h3>
+                <ul class="country-list" id="arabCountries">
+                    <!-- Arabic countries will be loaded here -->
+                </ul>
+            </div>
+
+            <!-- World Countries Section -->
+            <div class="country-section">
+                <h3 class="section-title">دول العالم</h3>
+                <ul class="country-list" id="worldCountries">
+                    <!-- World countries will be loaded here -->
+                </ul>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Navbar -->
+            <nav class="navbar" id="navbar">
+                <button class="sidebar-toggle" id="sidebarToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                
+                <div class="search-container">
+                    <input type="text" 
+                           class="search-input" 
+                           id="searchInput" 
+                           placeholder="ابحث عن قناة..."
+                           autocomplete="off">
+                </div>
+
+                <button class="theme-toggle" id="themeToggle">
+                    <i class="fas fa-moon"></i>
+                </button>
+            </nav>
+
+            <!-- Video Player Section -->
+            <section class="player-section">
+                <div class="player-container">
+                    <div id="video-player"></div>
+                </div>
+            </section>
+
+            <!-- Channels Grid Section -->
+            <section class="channels-section">
+                <div class="section-header">
+                    <h2 id="channelsTitle">القنوات المتاحة</h2>
+                    <span id="channelsCount" class="english">0 channels</span>
+                </div>
+                
+                <div class="channels-grid" id="channelsGrid">
+                    <!-- Channels will be loaded here -->
+                    <div class="loading">
+                        <div class="spinner"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Footer -->
+            <footer class="footer">
+                <div class="footer-content">
+                    <div>
+                        <div class="footer-logo">
+                            <i class="fas fa-satellite-dish"></i> بث مباشر
+                        </div>
+                        <p class="english">Live streaming platform for IPTV channels from around the world.</p>
+                    </div>
+                    
+                    <div>
+                        <h3 class="section-title">روابط سريعة</h3>
+                        <div class="footer-links">
+                            <a href="#" class="footer-link">الرئيسية</a>
+                            <a href="#channelsGrid" class="footer-link">القنوات</a>
+                            <a href="#" class="footer-link">حول التطبيق</a>
+                            <a href="#" class="footer-link">الدعم</a>
+                        </div>
+                    </div>
+                    
+                    <div class="english">
+                        <h3 class="section-title">Quick Links</h3>
+                        <div class="footer-links">
+                            <a href="#" class="footer-link">Home</a>
+                            <a href="#channelsGrid" class="footer-link">Channels</a>
+                            <a href="#" class="footer-link">About</a>
+                            <a href="#" class="footer-link">Support</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="copyright">
+                    © 2024 <span class="developer-name">عماد الدين لمراني</span> - جميع الحقوق محفوظة
+                    <br>
+                    <span class="english">© 2024 <span class="developer-name">Imad Eddine Lamrani</span> - All rights reserved</span>
+                </div>
+            </footer>
+        </main>
+    </div>
+
+    <!-- CDN Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <script src="https://cdn.plyr.io/3.7.8/plyr.polyfilled.js"></script>
+
+    <script>
+        // Application Configuration
+        const CONFIG = {
+            countries: {
+                arabic: [
+                    { code: 'sa', name: 'السعودية', flag: '🇸🇦' },
+                    { code: 'eg', name: 'مصر', flag: '🇪🇬' },
+                    { code: 'ae', name: 'الإمارات', flag: '🇦🇪' },
+                    { code: 'qa', name: 'قطر', flag: '🇶🇦' },
+                    { code: 'kw', name: 'الكويت', flag: '🇰🇼' },
+                    { code: 'bh', name: 'البحرين', flag: '🇧🇭' },
+                    { code: 'om', name: 'عمان', flag: '🇴🇲' },
+                    { code: 'jo', name: 'الأردن', flag: '🇯🇴' },
+                    { code: 'lb', name: 'لبنان', flag: '🇱🇧' },
+                    { code: 'sy', name: 'سوريا', flag: '🇸🇾' },
+                    { code: 'iq', name: 'العراق', flag: '🇮🇶' },
+                    { code: 'ma', name: 'المغرب', flag: '🇲🇦' },
+                    { code: 'dz', name: 'الجزائر', flag: '🇩🇿' },
+                    { code: 'tn', name: 'تونس', flag: '🇹🇳' }
+                ],
+                world: [
+                    { code: 'us', name: 'الولايات المتحدة', flag: '🇺🇸' },
+                    { code: 'gb', name: 'بريطانيا', flag: '🇬🇧' },
+                    { code: 'fr', name: 'فرنسا', flag: '🇫🇷' },
+                    { code: 'de', name: 'ألمانيا', flag: '🇩🇪' },
+                    { code: 'it', name: 'إيطاليا', flag: '🇮🇹' },
+                    { code: 'es', name: 'إسبانيا', flag: '🇪🇸' },
+                    { code: 'tr', name: 'تركيا', flag: '🇹🇷' },
+                    { code: 'ru', name: 'روسيا', flag: '🇷🇺' },
+                    { code: 'cn', name: 'الصين', flag: '🇨🇳' },
+                    { code: 'in', name: 'الهند', flag: '🇮🇳' }
+                ]
+            },
+            apiBase: 'https://iptv-org.github.io/iptv/countries/',
+            cache: new Map(),
+            player: null,
+            currentCountry: 'sa'
+        };
+
+        // DOM Elements
+        const elements = {
+            sidebar: document.getElementById('sidebar'),
+            navbar: document.getElementById('navbar'),
+            themeToggle: document.getElementById('themeToggle'),
+            searchInput: document.getElementById('searchInput'),
+            sidebarToggle: document.getElementById('sidebarToggle'),
+            channelsGrid: document.getElementById('channelsGrid'),
+            channelsTitle: document.getElementById('channelsTitle'),
+            channelsCount: document.getElementById('channelsCount'),
+            arabCountries: document.getElementById('arabCountries'),
+            worldCountries: document.getElementById('worldCountries'),
+            notificationContainer: document.getElementById('notificationContainer')
+        };
+
+        // Initialize Application
+        class IPTVApp {
+            constructor() {
+                this.channels = [];
+                this.filteredChannels = [];
+                this.searchTimeout = null;
+                this.currentTheme = localStorage.getItem('theme') || 'light';
+                
+                this.init();
+            }
+
+            async init() {
+                this.setTheme(this.currentTheme);
+                this.renderCountries();
+                this.initEventListeners();
+                this.initPlayer();
+                await this.loadCountry('sa');
+            }
+
+            // Theme Management
+            setTheme(theme) {
+                document.body.setAttribute('data-theme', theme);
+                const icon = elements.themeToggle.querySelector('i');
+                icon.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+                localStorage.setItem('theme', theme);
+            }
+
+            toggleTheme() {
+                const newTheme = this.currentTheme === 'light' ? 'dark' : 'light';
+                this.currentTheme = newTheme;
+                this.setTheme(newTheme);
+            }
+
+            // Country Management
+            renderCountries() {
+                this.renderCountryList(CONFIG.countries.arabic, elements.arabCountries);
+                this.renderCountryList(CONFIG.countries.world, elements.worldCountries);
+            }
+
+            renderCountryList(countries, container) {
+                container.innerHTML = countries.map(country => `
+                    <li class="country-item" data-code="${country.code}">
+                        <span class="country-flag">${country.flag}</span>
+                        <span class="country-name">${country.name}</span>
+                        <span class="channel-count english" id="count-${country.code}">0</span>
+                    </li>
+                `).join('');
+            }
+
+            async loadCountry(countryCode) {
+                try {
+                    this.showLoading();
+                    CONFIG.currentCountry = countryCode;
+                    
+                    // Update active country
+                    document.querySelectorAll('.country-item').forEach(item => {
+                        item.classList.toggle('active', item.dataset.code === countryCode);
+                    });
+
+                    // Check cache first
+                    if (CONFIG.cache.has(countryCode)) {
+                        const cachedData = CONFIG.cache.get(countryCode);
+                        this.displayChannels(cachedData.channels, cachedData.countryName);
+                        return;
+                    }
+
+                    // Fetch from API
+                    const response = await fetch(`${CONFIG.apiBase}${countryCode}.m3u`);
+                    if (!response.ok) throw new Error('Failed to fetch channels');
+                    
+                    const m3uContent = await response.text();
+                    const channels = this.parseM3U(m3uContent);
+                    const countryName = this.getCountryName(countryCode);
+                    
+                    // Cache the data
+                    CONFIG.cache.set(countryCode, { channels, countryName });
+                    
+                    // Update count
+                    this.updateCountryCount(countryCode, channels.length);
+                    
+                    // Display channels
+                    this.displayChannels(channels, countryName);
+                    
+                    this.showNotification(`تم تحميل ${channels.length} قناة`, 'success');
+                } catch (error) {
+                    console.error('Error loading country:', error);
+                    this.showNotification('فشل في تحميل القنوات', 'error');
+                    this.showEmptyState();
+                }
+            }
+
+            parseM3U(content) {
+                const lines = content.split('\n');
+                const channels = [];
+                let currentChannel = {};
+
+                for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    
+                    if (line.startsWith('#EXTINF:')) {
+                        currentChannel = {};
+                        
+                        // Extract metadata
+                        const metadata = line.match(/#EXTINF:(-?\d+)\s*(.*)/);
+                        if (metadata) {
+                            const info = metadata[2];
+                            const nameMatch = info.match(/tvg-name="([^"]*)"/);
+                            const logoMatch = info.match(/tvg-logo="([^"]*)"/);
+                            const groupMatch = info.match(/group-title="([^"]*)"/);
+                            
+                            currentChannel.name = nameMatch ? nameMatch[1] : info.split(',')[1]?.trim() || 'Unknown';
+                            currentChannel.logo = logoMatch ? logoMatch[1] : '';
+                            currentChannel.group = groupMatch ? groupMatch[1] : 'General';
+                        }
+                    } else if (line && !line.startsWith('#') && currentChannel.name) {
+                        currentChannel.url = line;
+                        channels.push({...currentChannel});
+                        currentChannel = {};
+                    }
+                }
+
+                return channels.slice(0, 100); // Limit to 100 channels for performance
+            }
+
+            getCountryName(code) {
+                const allCountries = [...CONFIG.countries.arabic, ...CONFIG.countries.world];
+                const country = allCountries.find(c => c.code === code);
+                return country ? country.name : code.toUpperCase();
+            }
+
+            updateCountryCount(countryCode, count) {
+                const countElement = document.getElementById(`count-${countryCode}`);
+                if (countElement) {
+                    countElement.textContent = count;
+                }
+            }
+
+            // Display Channels
+            displayChannels(channels, countryName) {
+                this.channels = channels;
+                this.filteredChannels = channels;
+                
+                elements.channelsTitle.textContent = `قنوات ${countryName}`;
+                elements.channelsCount.textContent = `${channels.length} channels`;
+                
+                this.renderChannelsGrid(channels);
+            }
+
+            renderChannelsGrid(channels) {
+                if (channels.length === 0) {
+                    this.showEmptyState();
+                    return;
+                }
+
+                elements.channelsGrid.innerHTML = channels.map(channel => `
+                    <div class="channel-card" data-url="${channel.url}">
+                        <div class="channel-logo">
+                            ${channel.logo ? 
+                                `<img src="${channel.logo}" alt="${channel.name}" onerror="this.style.display='none'; this.parentElement.innerHTML='<i class=\"fas fa-tv\"></i>';">` : 
+                                `<i class="fas fa-tv"></i>`
+                            }
+                        </div>
+                        <h3 class="channel-name">${channel.name}</h3>
+                        <p class="channel-category">${channel.group}</p>
+                        <button class="play-button" onclick="app.playChannel('${channel.url}')">
+                            <i class="fas fa-play"></i> تشغيل
+                        </button>
+                    </div>
+                `).join('');
+            }
+
+            // Video Player
+            initPlayer() {
+                const playerElement = document.getElementById('video-player');
+                CONFIG.player = new Plyr(playerElement, {
+                    controls: ['play', 'progress', 'current-time', 'mute', 'volume', 'fullscreen'],
+                    settings: ['quality', 'speed'],
+                    autoplay: false,
+                    ratio: '16:9'
+                });
+
+                // Listen for player errors
+                CONFIG.player.on('error', (event) => {
+                    console.error('Player error:', event.detail.plyr);
+                    this.showNotification('فشل في تشغيل القناة', 'error');
+                });
+            }
+
+            playChannel(url) {
+                try {
+                    if (Hls.isSupported()) {
+                        const hls = new Hls();
+                        hls.loadSource(url);
+                        hls.attachMedia(CONFIG.player.media);
+                        hls.on(Hls.Events.MANIFEST_PARSED, () => {
+                            CONFIG.player.play();
+                        });
+                    } else if (CONFIG.player.media.canPlayType('application/vnd.apple.mpegurl')) {
+                        CONFIG.player.source = {
+                            type: 'video',
+                            sources: [{
+                                src: url,
+                                type: 'application/x-mpegURL'
+                            }]
+                        };
+                        CONFIG.player.play();
+                    } else {
+                        throw new Error('HLS not supported');
+                    }
+                    
+                    this.showNotification('جاري تشغيل القناة...', 'info');
+                } catch (error) {
+                    console.error('Error playing channel:', error);
+                    this.showNotification('فشل في تشغيل القناة', 'error');
+                }
+            }
+
+            // Search Functionality
+            initSearch() {
+                elements.searchInput.addEventListener('input', (e) => {
+                    clearTimeout(this.searchTimeout);
+                    
+                    this.searchTimeout = setTimeout(() => {
+                        const searchTerm = e.target.value.toLowerCase().trim();
+                        this.searchChannels(searchTerm);
+                    }, 300);
+                });
+            }
+
+            searchChannels(searchTerm) {
+                if (!searchTerm) {
+                    this.filteredChannels = this.channels;
+                    this.renderChannelsGrid(this.channels);
+                    return;
+                }
+
+                this.filteredChannels = this.channels.filter(channel => 
+                    channel.name.toLowerCase().includes(searchTerm) ||
+                    channel.group.toLowerCase().includes(searchTerm)
+                );
+
+                if (this.filteredChannels.length === 0) {
+                    this.showNoResults(searchTerm);
+                } else {
+                    this.renderChannelsGrid(this.filteredChannels);
+                    elements.channelsCount.textContent = `${this.filteredChannels.length} channels`;
+                }
+            }
+
+            // UI Helpers
+            showLoading() {
+                elements.channelsGrid.innerHTML = `
+                    <div class="loading">
+                        <div class="spinner"></div>
+                    </div>
+                `;
+            }
+
+            showEmptyState() {
+                elements.channelsGrid.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-satellite-dish"></i>
+                        <h3>لا توجد قنوات متاحة</h3>
+                        <p>حاول اختيار دولة أخرى</p>
+                    </div>
+                `;
+            }
+
+            showNoResults(searchTerm) {
+                elements.channelsGrid.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-search"></i>
+                        <h3>لا توجد نتائج لـ "${searchTerm}"</h3>
+                        <p>حاول البحث بكلمات مختلفة</p>
+                    </div>
+                `;
+            }
+
+            showNotification(message, type = 'info') {
+                const notification = document.createElement('div');
+                notification.className = `notification ${type}`;
+                notification.innerHTML = `
+                    <span class="notification-icon">
+                        ${type === 'success' ? '✅' : 
+                          type === 'error' ? '❌' : 
+                          type === 'warning' ? '⚠️' : 'ℹ️'}
+                    </span>
+                    <div class="notification-content">${message}</div>
+                `;
+
+                elements.notificationContainer.appendChild(notification);
+
+                // Trigger animation
+                setTimeout(() => notification.classList.add('show'), 10);
+
+                // Remove after 3 seconds
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                    setTimeout(() => notification.remove(), 300);
+                }, 3000);
+            }
+
+            // Event Listeners
+            initEventListeners() {
+                // Theme toggle
+                elements.themeToggle.addEventListener('click', () => this.toggleTheme());
+
+                // Country selection
+                document.querySelectorAll('.country-item').forEach(item => {
+                    item.addEventListener('click', () => {
+                        this.loadCountry(item.dataset.code);
+                        if (window.innerWidth <= 1024) {
+                            elements.sidebar.classList.remove('active');
+                        }
+                    });
+                });
+
+                // Search
+                this.initSearch();
+
+                // Mobile sidebar toggle
+                elements.sidebarToggle.addEventListener('click', () => {
+                    elements.sidebar.classList.toggle('active');
+                });
+
+                // Close sidebar when clicking outside on mobile
+                document.addEventListener('click', (e) => {
+                    if (window.innerWidth <= 1024 && 
+                        !elements.sidebar.contains(e.target) && 
+                        !elements.sidebarToggle.contains(e.target)) {
+                        elements.sidebar.classList.remove('active');
+                    }
+                });
+
+                // Keyboard shortcuts
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape' && window.innerWidth <= 1024) {
+                        elements.sidebar.classList.remove('active');
+                    }
+                    if (e.key === '/' && e.target !== elements.searchInput) {
+                        e.preventDefault();
+                        elements.searchInput.focus();
+                    }
+                });
+            }
+        }
+
+        // Initialize the application when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            window.app = new IPTVApp();
+        });
+
+        // Add sample data for demo purposes
+        const demoChannels = [
+            {
+                name: 'القناة الرياضية السعودية',
+                logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6c/SSC_logo.svg/240px-SSC_logo.svg.png',
+                group: 'Sports',
+                url: 'https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8'
+            },
+            {
+                name: 'MBC 1',
+                logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9f/MBC1_logo_2011.svg/240px-MBC1_logo_2011.svg.png',
+                group: 'Entertainment',
+                url: 'https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8'
+            },
+            {
+                name: 'Al Jazeera Arabic',
+                logo: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Al_Jazeera_English_Logo.svg/240px-Al_Jazeera_English_Logo.svg.png',
+                group: 'News',
+                url: 'https://demo.unified-streaming.com/k8s/features/stable/video/tears-of-steel/tears-of-steel.ism/.m3u8'
+            }
+        ];
+
+        // Fallback function for demo
+        function loadDemoData() {
+            if (app && app.channels.length === 0) {
+                app.displayChannels(demoChannels, 'السعودية');
+                app.showNotification('تم تحميل بيانات تجريبية', 'info');
+            }
+        }
+
+        // Load demo data after 3 seconds if no real data loaded
+        setTimeout(loadDemoData, 3000);
+    </script>
+</body>
+</html>
