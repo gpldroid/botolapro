@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dami Pro | IPTV & VOD متطور</title>
+    
+    <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary: #e50914;
+            --dark: #0f0f0f;
+            --panel: #1a1a1a;
+            --text: #ffffff;
+            --text-gray: #aaaaaa;
+            --border: #222222;
+        }
+
+        body.light-mode {
+            --dark: #f0f2f5;
+            --panel: #ffffff;
+            --text: #1a1a1a;
+            --text-gray: #65676b;
+            --border: #dddddd;
+        }
+
+        body {
+            background-color: var(--dark); color: var(--text); font-family: 'Cairo', sans-serif;
+            margin: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden;
+        }
+
+        header {
+            height: 50px; background: var(--panel); border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 100;
+        }
+        .logo { color: var(--primary); font-weight: bold; font-size: 1.2rem; }
+
+        .video-container { width: 100%; background: #000; aspect-ratio: 16/9; max-height: 40vh; }
+        
+        .main-content { display: flex; flex: 1; overflow: hidden; }
+        .list-section { display: flex; flex-direction: column; border-left: 1px solid var(--border); }
+        
+        /* القائمة الجانبية والدول */
+        .sidebar { width: 30%; background: var(--panel); }
+        .channel-area { width: 70%; background: var(--dark); }
+
+        .section-header { 
+            padding: 10px; background: var(--border); font-size: 0.8rem; 
+            font-weight: bold; display: flex; justify-content: space-between; align-items: center;
+        }
+
+        .search-box { padding: 8px; background: var(--panel); border-bottom: 1px solid var(--border); display: flex; gap: 5px; }
+        .search-box input {
+            flex: 1; padding: 8px; border-radius: 6px; border: 1px solid var(--border);
+            background: var(--dark); color: var(--text); outline: none; font-size: 0.8rem;
+        }
+
+        .scroll-list { flex: 1; overflow-y: auto; }
+        .item {
+            padding: 10px 15px; border-bottom: 1px solid var(--border); cursor: pointer;
+            display: flex; align-items: center; gap: 10px; transition: 0.2s;
+        }
+        .item:hover { background: rgba(229, 9, 20, 0.1); }
+        .item img { width: 28px; height: 28px; border-radius: 4px; object-fit: contain; }
+        .item span { font-size: 0.85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        .bottom-nav {
+            background: var(--panel); border-top: 1px solid var(--border);
+            display: flex; justify-content: space-around; padding: 10px;
+        }
+        .nav-btn { display: flex; flex-direction: column; align-items: center; font-size: 0.65rem; color: var(--text-gray); cursor: pointer; border: none; background: none; }
+        .nav-btn i { font-size: 1.2rem; margin-bottom: 4px; }
+        .nav-btn.active, .nav-btn:hover { color: var(--primary); }
+
+        .back-btn { background: var(--primary); color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.7rem; }
+
+        @media (max-width: 768px) {
+            .sidebar { width: 40%; }
+            .channel-area { width: 60%; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">DAMI PRO</div>
+        <button onclick="toggleTheme()" style="background:none; border:none; color:var(--text); cursor:pointer;"><i id="theme-icon" class="fas fa-moon"></i></button>
+    </header>
+
+    <div class="video-container">
+        <video id="player" playsinline controls crossorigin></video>
+    </div>
+
+    <div class="main-content">
+        <aside class="list-section sidebar">
+            <div class="section-header">
+                <span>المصادر</span>
+                <button class="back-btn" onclick="fetchCountries()"><i class="fas fa-home"></i> الرئيسية</button>
+            </div>
+            <div class="search-box">
+                <input type="text" placeholder="بحث دول..." oninput="filterList('countries-container', this.value)">
+            </div>
+            <div id="countries-container" class="scroll-list"></div>
+        </aside>
+
+        <main class="list-section channel-area">
+            <div class="section-header">
+                <span id="current-source-name">قائمة القنوات</span>
+                <span id="chan-count" style="opacity: 0.6; font-size: 0.7rem;">0 قنوات</span>
+            </div>
+            <div class="search-box">
+                <input type="text" id="chan-search" placeholder="بحث في القائمة الحالية..." oninput="filterList('channels-container', this.value)">
+                <button onclick="sortAlpha()" style="background:none; border:none; color:var(--text);"><i class="fas fa-sort-alpha-down"></i></button>
+            </div>
+            <div id="channels-container" class="scroll-list"></div>
+        </main>
+    </div>
+
+    <nav class="bottom-nav">
+        <div class="nav-btn" onclick="document.getElementById('file-input').click()">
+            <i class="fas fa-file-upload"></i><span>رفع ملف</span>
+            <input type="file" id="file-input" hidden accept=".m3u,.m3u8">
+        </div>
+        <div class="nav-btn" onclick="showVOD()">
+            <i class="fas fa-film"></i><span>VOD</span>
+        </div>
+        <div class="nav-btn" onclick="showHistory()">
+            <i class="fas fa-history"></i><span>السجل</span>
+        </div>
+        <div class="nav-btn" onclick="location.reload()">
+            <i class="fas fa-sync"></i><span>تحديث</span>
+        </div>
+    </nav>
+
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <script src="https://cdn.plyr.io/3.7.8/plyr.polyfilled.js"></script>
+
+    <script>
+        const video = document.getElementById('player');
+        const player = new Plyr(video, { autoplay: true });
+        let hlsInstance, masterList = [];
+        let history = JSON.parse(localStorage.getItem('dami_history')) || [];
+
+        // --- تهيئة الوضع المظلم ---
+        function toggleTheme() {
+            const isLight = document.body.classList.toggle('light-mode');
+            localStorage.setItem('dami_theme', isLight ? 'light' : 'dark');
+            document.getElementById('theme-icon').className = isLight ? 'fas fa-sun' : 'fas fa-moon';
+        }
+        if(localStorage.getItem('dami_theme') === 'light') toggleTheme();
+
+        // --- تشغيل الفيديو ---
+        function playMedia(url, name) {
+            if (!url) return;
+            // حفظ في السجل
+            history = history.filter(h => h.url !== url);
+            history.unshift({url, name});
+            if(history.length > 15) history.pop();
+            localStorage.setItem('dami_history', JSON.stringify(history));
+
+            const cleanUrl = url.trim();
+            if (cleanUrl.includes('m3u8') && Hls.isSupported()) {
+                if (hlsInstance) hlsInstance.destroy();
+                hlsInstance = new Hls();
+                hlsInstance.loadSource(cleanUrl);
+                hlsInstance.attachMedia(video);
+                hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => player.play());
+            } else {
+                video.src = cleanUrl;
+                player.play();
+            }
+        }
+
+        // --- معالجة الملفات ---
+        function parseM3U(text, sourceName) {
+            masterList = []; // مسح القائمة القديمة تماماً
+            const lines = text.split('\n');
+            let current = {};
+            
+            lines.forEach(line => {
+                line = line.trim();
+                if (line.startsWith('#EXTINF:')) {
+                    current.name = line.split(',').pop().trim();
+                    current.logo = (line.match(/tvg-logo="([^"]+)"/) || [])[1] || '';
+                    current.isVOD = /202|movie|film|فيلم|مسلسل/i.test(current.name);
+                } else if (line.startsWith('http')) {
+                    current.url = line;
+                    masterList.push({ ...current });
+                    current = {};
+                }
+            });
+
+            document.getElementById('current-source-name').innerText = sourceName;
+            document.getElementById('chan-count').innerText = masterList.length + " قناة";
+            renderChannels(masterList);
+        }
+
+        function renderChannels(list) {
+            const container = document.getElementById('channels-container');
+            container.innerHTML = '';
+            list.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'item';
+                div.innerHTML = `
+                    <img src="${item.logo || 'https://via.placeholder.com/30?text=TV'}" onerror="this.src='https://via.placeholder.com/30?text=TV'">
+                    <span>${item.name}</span>
+                `;
+                div.onclick = () => playMedia(item.url, item.name);
+                container.appendChild(div);
+            });
+        }
+
+        // --- جلب الدول ---
+        async function fetchCountries() {
+            const container = document.getElementById('countries-container');
+            container.innerHTML = '<div class="item">جاري التحميل...</div>';
+            try {
+                const res = await fetch('https://iptv-org.github.io/api/countries.json');
+                const data = await res.json();
+                container.innerHTML = '';
+                data.sort((a,b) => a.name.localeCompare(b.name)).forEach(c => {
+                    const div = document.createElement('div');
+                    div.className = 'item';
+                    div.innerHTML = `<img src="https://flagcdn.com/w40/${c.code.toLowerCase()}.png"><span>${c.name}</span>`;
+                    div.onclick = () => loadUrl(`https://iptv-org.github.io/iptv/countries/${c.code.toLowerCase()}.m3u`, c.name);
+                    container.appendChild(div);
+                });
+            } catch(e) { container.innerHTML = '<div class="item">خطأ في الاتصال</div>'; }
+        }
+
+        async function loadUrl(url, name) {
+            const res = await fetch(url);
+            const text = await res.text();
+            parseM3U(text, name);
+        }
+
+        // --- الفرز والبحث ---
+        function filterList(containerId, query) {
+            const q = query.toLowerCase();
+            const items = document.getElementById(containerId).getElementsByClassName('item');
+            for (let item of items) {
+                item.style.display = item.innerText.toLowerCase().includes(q) ? 'flex' : 'none';
+            }
+        }
+
+        function sortAlpha() {
+            masterList.sort((a, b) => a.name.localeCompare(b.name));
+            renderChannels(masterList);
+        }
+
+        function showVOD() {
+            const vods = masterList.filter(m => m.isVOD);
+            renderChannels(vods);
+            document.getElementById('current-source-name').innerText = "أفلام و VOD";
+        }
+
+        function showHistory() {
+            renderChannels(history);
+            document.getElementById('current-source-name').innerText = "السجل";
+        }
+
+        // --- مستمع رفع الملف ---
+        document.getElementById('file-input').addEventListener('change', e => {
+            const file = e.target.files[0];
+            if(!file) return;
+            const reader = new FileReader();
+            reader.onload = ev => {
+                parseM3U(ev.target.result, "ملف مرفوع: " + file.name);
+                // تحديث القائمة الجانبية لتظهر أننا نستخدم ملفاً
+                document.getElementById('countries-container').innerHTML = `<div class="item" style="color:var(--primary)"><b>📁 ${file.name}</b></div>`;
+            };
+            reader.readAsText(file);
+        });
+
+        fetchCountries();
+    </script>
+</body>
+</html>
