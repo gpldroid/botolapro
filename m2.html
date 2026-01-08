@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IPTV Ultra Pro - عماد الدين لمراني</title>
+    <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #e50914;
+            --bg-dark: #0a0a0a;
+            --bg-panel: #1a1a1a;
+            --text-color: #f0f0f0;
+            --text-secondary: #aaa;
+            --border-color: #333;
+            --card-bg: #222;
+        }
+
+        body.light-mode {
+            --bg-dark: #f0f2f5;
+            --bg-panel: #ffffff;
+            --text-color: #1c1e21;
+            --border-color: #ddd;
+            --card-bg: #fff;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-color);
+            font-family: 'Cairo', sans-serif;
+            margin: 0; height: 100vh;
+            display: flex; flex-direction: column;
+            overflow: hidden;
+        }
+
+        header {
+            height: 60px; background: var(--bg-panel);
+            border-bottom: 2px solid var(--primary-color);
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 20px; flex-shrink: 0; z-index: 100;
+        }
+
+        .logo { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1.2rem; }
+        .logo svg { fill: var(--primary-color); width: 28px; }
+
+        /* وضع السينما */
+        .theater-mode .main-layout, .theater-mode .football-widget-area { display: none; }
+        .theater-mode .video-wrapper { max-height: 90vh; height: 90vh; }
+
+        .top-container { background: #000; flex-shrink: 0; transition: all 0.3s ease; }
+        .video-wrapper { width: 100%; max-height: 40vh; position: relative; }
+        
+        /* أزرار التحكم الإضافية للفيديو */
+        .video-overlay-btns {
+            position: absolute; top: 10px; left: 10px; z-index: 10;
+            display: flex; gap: 8px;
+        }
+        .v-btn {
+            background: rgba(0,0,0,0.6); color: white; border: 1px solid #555;
+            padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 0.8rem;
+        }
+
+        .main-layout { display: flex; flex: 1; overflow: hidden; min-height: 0; }
+        
+        /* تحسين القوائم لتصبح بطاقات */
+        .list-section { display: flex; flex-direction: column; overflow: hidden; height: 100%; }
+        .countries-list { width: 30%; background: var(--bg-panel); border-left: 1px solid var(--border-color); }
+        .channels-list { width: 70%; }
+
+        .search-box { padding: 12px; background: var(--bg-panel); position: sticky; top:0; z-index: 5; }
+        .search-box input {
+            width: 100%; padding: 10px; border-radius: 8px;
+            border: 1px solid var(--border-color); background: var(--bg-dark); color: var(--text-color);
+            box-sizing: border-box; outline: none;
+        }
+
+        .scrollable-list { 
+            flex: 1; overflow-y: auto; padding: 10px;
+            display: grid; grid-template-columns: 1fr; gap: 8px;
+        }
+        
+        /* شكل البطاقة الجديد */
+        .item {
+            background: var(--card-bg);
+            padding: 12px; border-radius: 10px; cursor: pointer;
+            display: flex; align-items: center; transition: transform 0.2s, background 0.2s;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .item:hover { transform: translateY(-2px); background: var(--primary-color); color: white; }
+        .item img { width: 32px; height: 32px; margin-left: 12px; border-radius: 6px; background: #eee; }
+
+        .upload-bar {
+            padding: 10px; background: var(--bg-panel); border-top: 1px solid var(--border-color);
+            display: flex; align-items: center; justify-content: center; gap: 15px;
+        }
+
+        .upload-btn {
+            background: var(--primary-color); color: white; border: none; padding: 8px 20px;
+            border-radius: 20px; cursor: pointer; font-weight: 600;
+        }
+
+        footer {
+            height: 35px; background: var(--bg-panel); font-size: 0.8rem;
+            display: flex; align-items: center; justify-content: center; border-top: 1px solid var(--border-color);
+        }
+
+        @media (max-width: 768px) {
+            .main-layout { flex-direction: column; }
+            .countries-list, .channels-list { width: 100%; height: 50%; }
+            .video-wrapper { max-height: 30vh; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">
+            <svg viewBox="0 0 24 24"><path d="M21 3H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h5v2h8v-2h5c1.1 0 1.99-.9 1.99-2L23 5c0-1.1-.9-2-2-2zm0 14H3V5h18v12z"/></svg>
+            <span>IPTV ULTRA</span>
+        </div>
+        <div style="display: flex; gap: 10px;">
+            <button onclick="toggleLightMode()" class="v-btn">🌓</button>
+        </div>
+    </header>
+
+    <div class="top-container" id="top-area">
+        <div class="video-wrapper">
+            <div class="video-overlay-btns">
+                <button class="v-btn" onclick="toggleTheater()">🎬 وضع السينما</button>
+                <button class="v-btn" id="pip-btn">📺 نافذة طافية</button>
+            </div>
+            <video id="player" playsinline controls></video>
+        </div>
+    </div>
+
+    <div class="main-layout">
+        <div class="list-section countries-list">
+            <div class="search-box"><input type="text" placeholder="ابحث عن دولة..." onkeyup="filterList('countries-container', this.value)"></div>
+            <div id="countries-container" class="scrollable-list"></div>
+        </div>
+        <div class="list-section channels-list">
+            <div class="search-box">
+                <input type="text" placeholder="ابحث عن قناة أو فيلم..." onkeyup="filterList('channels-container', this.value)">
+            </div>
+            <div id="channels-container" class="scrollable-list"></div>
+        </div>
+    </div>
+
+    <div class="upload-bar">
+        <input type="file" id="m3u-input" accept=".m3u,.m3u8" hidden>
+        <button class="upload-btn" onclick="document.getElementById('m3u-input').click()">📁 استيراد ملف M3U</button>
+        <button id="reset-btn" class="v-btn" style="display:none;" onclick="location.reload()">🔄 القائمة العالمية</button>
+        <span id="status-msg" style="font-size: 0.8rem;"></span>
+    </div>
+
+    <footer>حقوق الحقوق محفوظة &copy; عماد الدين لمراني</footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <script src="https://cdn.plyr.io/3.7.8/plyr.polyfilled.js"></script>
+
+    <script>
+        const video = document.getElementById('player');
+        let player = new Plyr(video, { captions: { active: true, update: true } });
+        let hls;
+
+        // 2. تفعيل النافذة الطافية (PiP)
+        const pipBtn = document.getElementById('pip-btn');
+        pipBtn.addEventListener('click', async () => {
+            try {
+                if (video !== document.pictureInPictureElement) {
+                    await video.requestPictureInPicture();
+                } else {
+                    await document.exitPictureInPicture();
+                }
+            } catch (error) { console.error("PiP error"); }
+        });
+
+        // 4. وضع السينما
+        function toggleTheater() {
+            document.body.classList.toggle('theater-mode');
+            window.scrollTo(0,0);
+        }
+
+        function toggleLightMode() {
+            document.body.classList.toggle('light-mode');
+        }
+
+        function initPlayer(url) {
+            if (Hls.isSupported()) {
+                if(hls) hls.destroy();
+                hls = new Hls();
+                hls.loadSource(url);
+                hls.attachMedia(video);
+            } else {
+                video.src = url;
+            }
+            video.play();
+        }
+
+        // تحسين جلب الدول
+        async function fetchCountries() {
+            const res = await fetch('https://iptv-org.github.io/api/countries.json');
+            const data = await res.json();
+            const container = document.getElementById('countries-container');
+            container.innerHTML = '';
+            data.sort((a,b) => a.name.localeCompare(b.name)).forEach(c => {
+                const div = document.createElement('div');
+                div.className = 'item';
+                div.innerHTML = `<img src="https://flagcdn.com/w80/${c.code.toLowerCase()}.png"> <span>${c.name}</span>`;
+                div.onclick = () => loadChannels(c.code);
+                div.setAttribute('data-name', c.name.toLowerCase());
+                container.appendChild(div);
+            });
+        }
+
+        async function loadChannels(code) {
+            document.getElementById('status-msg').innerText = 'جاري الجلب...';
+            const res = await fetch(`https://iptv-org.github.io/iptv/countries/${code.toLowerCase()}.m3u`);
+            const text = await res.text();
+            parseAndDisplayM3U(text);
+        }
+
+        // 5 & 6. دعم VOD وتحسين عرض القائمة
+        function parseAndDisplayM3U(text) {
+            const container = document.getElementById('channels-container');
+            container.innerHTML = '';
+            const lines = text.split('\n');
+            let items = [];
+            let currentItem = {};
+
+            lines.forEach(line => {
+                if (line.startsWith('#EXTINF:')) {
+                    currentItem.name = line.split(',').pop().trim();
+                    // محاولة جلب شعار القناة إذا وجد
+                    const logoMatch = line.match(/tvg-logo="([^"]+)"/);
+                    currentItem.logo = logoMatch ? logoMatch[1] : '';
+                } else if (line.startsWith('http')) {
+                    currentItem.url = line.trim();
+                    // 5. تمييز الأفلام (VOD)
+                    currentItem.isVOD = /\.(mp4|mkv|avi)$/i.test(currentItem.url);
+                    items.push({...currentItem});
+                    currentItem = {};
+                }
+            });
+
+            items.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'item';
+                const icon = item.isVOD ? '🎬' : '📺';
+                const img = item.logo ? `<img src="${item.logo}">` : `<span style="margin-left:10px">${icon}</span>`;
+                
+                div.innerHTML = `${img} <div style="display:flex; flex-direction:column">
+                    <span style="font-weight:600">${item.name}</span>
+                    <small style="color:var(--text-secondary)">${item.isVOD ? 'فيلم / VOD' : 'بث مباشر'}</small>
+                </div>`;
+                
+                div.onclick = () => {
+                    initPlayer(item.url);
+                    if(window.innerWidth < 768) window.scrollTo(0,0);
+                };
+                div.setAttribute('data-name', item.name.toLowerCase());
+                container.appendChild(div);
+            });
+            document.getElementById('status-msg').innerText = `تم تحميل ${items.length} عنصر`;
+        }
+
+        // استيراد ملف محلي
+        document.getElementById('m3u-input').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                document.getElementById('reset-btn').style.display = 'block';
+                parseAndDisplayM3U(event.target.result);
+            };
+            reader.readAsText(file);
+        });
+
+        function filterList(id, v) {
+            const items = document.getElementById(id).getElementsByClassName('item');
+            Array.from(items).forEach(i => {
+                const name = i.getAttribute('data-name') || '';
+                i.style.display = name.includes(v.toLowerCase()) ? 'flex' : 'none';
+            });
+        }
+
+        fetchCountries();
+    </script>
+</body>
+</html>
