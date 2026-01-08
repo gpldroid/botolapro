@@ -1,0 +1,1407 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <title>Dami Pro | مشغل IPTV و VOD متطور</title>
+    <meta name="description" content="Dami Player Pro مشغل IPTV احترافي يدعم ملفات M3U، فرز القنوات، ودعم الأفلام VOD مع حفظ الوضع الليلي.">
+    
+    <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    
+    <style>
+        :root {
+            --primary: #e50914;
+            --primary-dark: #b20710;
+            --dark: #0f0f0f;
+            --panel: #1a1a1a;
+            --text: #ffffff;
+            --text-gray: #aaaaaa;
+            --border: #222222;
+            --success: #4CAF50;
+            --warning: #ff9800;
+            --info: #2196F3;
+        }
+
+        body.light-mode {
+            --dark: #f0f2f5;
+            --panel: #ffffff;
+            --text: #1a1a1a;
+            --text-gray: #65676b;
+            --border: #dddddd;
+            --primary: #e50914;
+            --primary-dark: #b20710;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--dark); 
+            color: var(--text); 
+            font-family: 'Cairo', sans-serif;
+            margin: 0; 
+            height: 100vh; 
+            display: flex; 
+            flex-direction: column; 
+            overflow: hidden;
+        }
+
+        header {
+            height: 60px; 
+            background: var(--panel); 
+            border-bottom: 1px solid var(--border);
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            padding: 0 20px; 
+            flex-shrink: 0;
+            position: relative;
+            z-index: 100;
+        }
+        
+        .logo { 
+            display: flex; 
+            align-items: center; 
+            gap: 10px; 
+            color: var(--primary); 
+            font-weight: bold; 
+            font-size: 1.2rem;
+        }
+
+        .video-container { 
+            width: 100%; 
+            background: #000; 
+            position: relative; 
+            flex-shrink: 0; 
+            aspect-ratio: 16/9; 
+            max-height: 50vh;
+        }
+        
+        .video-container.loading::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+        }
+        
+        .main-content { 
+            display: flex; 
+            flex: 1; 
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .list-section { 
+            display: flex; 
+            flex-direction: column;
+            height: 100%;
+        }
+        
+        .sidebar { 
+            width: 280px; 
+            background: var(--panel);
+            border-left: 1px solid var(--border);
+            transition: transform 0.3s ease;
+        }
+        
+        .channel-area { 
+            flex: 1; 
+            background: var(--dark);
+        }
+
+        .search-box { 
+            padding: 12px; 
+            background: var(--panel); 
+            border-bottom: 1px solid var(--border); 
+            display: flex; 
+            gap: 8px;
+            flex-shrink: 0;
+        }
+        
+        .search-box input {
+            flex: 1; 
+            padding: 10px 15px; 
+            border-radius: 8px; 
+            border: 1px solid var(--border);
+            background: var(--dark); 
+            color: var(--text); 
+            outline: none; 
+            font-size: 0.9rem;
+            transition: border-color 0.3s;
+        }
+        
+        .search-box input:focus {
+            border-color: var(--primary);
+        }
+        
+        .search-actions {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .sort-btn, .filter-btn { 
+            background: var(--border); 
+            color: var(--text); 
+            border: none; 
+            padding: 0 12px; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 40px;
+            transition: background 0.3s;
+        }
+        
+        .sort-btn:hover, .filter-btn:hover {
+            background: var(--primary);
+        }
+        
+        .scroll-list { 
+            flex: 1; 
+            overflow-y: auto;
+            position: relative;
+        }
+        
+        .scroll-list::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .scroll-list::-webkit-scrollbar-track {
+            background: var(--dark);
+        }
+        
+        .scroll-list::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 3px;
+        }
+        
+        .scroll-list::-webkit-scrollbar-thumb:hover {
+            background: var(--primary);
+        }
+        
+        .item {
+            padding: 12px 15px; 
+            border-bottom: 1px solid var(--border); 
+            cursor: pointer;
+            display: flex; 
+            align-items: center; 
+            gap: 12px; 
+            transition: all 0.2s;
+            position: relative;
+        }
+        
+        .item:hover { 
+            background: rgba(229, 9, 20, 0.1); 
+            padding-right: 20px;
+        }
+        
+        .item.active {
+            background: rgba(229, 9, 20, 0.2);
+            border-right: 3px solid var(--primary);
+        }
+        
+        .item img { 
+            width: 36px; 
+            height: 36px; 
+            border-radius: 4px; 
+            object-fit: contain; 
+            background: #222; 
+            flex-shrink: 0;
+        }
+        
+        .item-content {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .item-title { 
+            font-size: 0.9rem; 
+            white-space: nowrap; 
+            overflow: hidden; 
+            text-overflow: ellipsis;
+            margin-bottom: 3px;
+        }
+        
+        .item-meta {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            font-size: 0.75rem;
+            color: var(--text-gray);
+        }
+        
+        /* علامة VOD */
+        .vod-badge { 
+            font-size: 0.65rem; 
+            background: var(--warning); 
+            color: #000; 
+            padding: 2px 6px; 
+            border-radius: 4px; 
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+        
+        .hd-badge {
+            font-size: 0.65rem;
+            background: var(--info);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+        
+        .favorite-btn {
+            background: none;
+            border: none;
+            color: var(--text-gray);
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 5px;
+            transition: color 0.3s;
+        }
+        
+        .favorite-btn.active {
+            color: gold;
+        }
+        
+        .bottom-bar {
+            background: var(--panel); 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            gap: 15px; 
+            border-top: 1px solid var(--border); 
+            padding: 10px;
+            flex-shrink: 0;
+        }
+        
+        .btn {
+            background: var(--primary); 
+            color: white; 
+            border: none; 
+            padding: 10px 16px;
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-family: 'Cairo'; 
+            font-weight: 600;
+            display: flex; 
+            align-items: center; 
+            gap: 8px; 
+            font-size: 0.85rem;
+            transition: all 0.3s;
+            min-width: 60px;
+            justify-content: center;
+        }
+        
+        .btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+        
+        .btn-gray { 
+            background: #333; 
+            color: white;
+        }
+        
+        .btn-gray:hover {
+            background: #444;
+        }
+        
+        .btn-success {
+            background: var(--success);
+        }
+        
+        .btn-success:hover {
+            background: #3d8b40;
+        }
+
+        footer { 
+            background: var(--panel); 
+            text-align: center; 
+            padding: 8px; 
+            font-size: 0.75rem; 
+            color: var(--text-gray); 
+            border-top: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+        
+        .loading-spinner {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+        }
+        
+        .loading-spinner.active {
+            display: block;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--border);
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-gray);
+        }
+        
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+        
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        
+        .player-info {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            z-index: 10;
+            display: none;
+        }
+        
+        .player-info.active {
+            display: block;
+        }
+        
+        .quality-selector {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 5px;
+            border-radius: 4px;
+            z-index: 10;
+            display: none;
+        }
+        
+        .quality-selector.active {
+            display: block;
+        }
+        
+        .quality-btn {
+            display: block;
+            width: 100%;
+            background: none;
+            border: none;
+            color: white;
+            padding: 5px 10px;
+            text-align: right;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+        
+        .quality-btn:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        
+        /* فلاتر متقدمة */
+        .filters-panel {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 300px;
+            height: 100%;
+            background: var(--panel);
+            border-left: 1px solid var(--border);
+            padding: 20px;
+            z-index: 1000;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            overflow-y: auto;
+        }
+        
+        .filters-panel.active {
+            transform: translateX(0);
+        }
+        
+        .filter-group {
+            margin-bottom: 20px;
+        }
+        
+        .filter-group h4 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            color: var(--primary);
+        }
+        
+        .filter-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        
+        .filter-option input {
+            margin: 0;
+        }
+        
+        @media (max-width: 992px) {
+            .sidebar {
+                width: 250px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                position: absolute;
+                top: 0;
+                right: 0;
+                width: 80%;
+                height: 100%;
+                z-index: 1000;
+                transform: translateX(100%);
+            }
+            
+            .sidebar.active {
+                transform: translateX(0);
+            }
+            
+            .mobile-menu-btn {
+                display: block;
+            }
+            
+            .btn span {
+                display: none;
+            }
+            
+            .btn {
+                min-width: auto;
+                padding: 10px;
+            }
+            
+            .bottom-bar {
+                gap: 10px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .search-actions {
+                flex-direction: column;
+            }
+            
+            .sort-btn, .filter-btn {
+                min-width: 35px;
+                padding: 0 8px;
+            }
+            
+            .video-container {
+                max-height: 40vh;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <button class="mobile-menu-btn" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+        <div class="logo"><i class="fas fa-play-circle"></i> <span>DAMI PRO</span></div>
+        <div>
+            <button class="btn btn-gray" onclick="showInfo()" title="معلومات"><i class="fas fa-info-circle"></i></button>
+            <button class="btn btn-gray" onclick="toggleTheme()"><i class="fas fa-moon" id="theme-icon"></i></button>
+        </div>
+    </header>
+
+    <div class="video-container" id="video-container">
+        <video id="player" playsinline controls crossorigin></video>
+        <div class="player-info" id="player-info"></div>
+        <div class="quality-selector" id="quality-selector"></div>
+        <div class="loading-spinner" id="video-loading">
+            <div class="spinner"></div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <aside class="list-section sidebar" id="sidebar">
+            <div class="search-box">
+                <input type="text" id="country-search" placeholder="بحث دول..." oninput="filterItems('countries-container', this.value)">
+            </div>
+            <div id="countries-container" class="scroll-list">
+                <div class="loading-spinner" id="countries-loading">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="list-section channel-area">
+            <div class="search-box">
+                <input type="text" id="channel-search" placeholder="بحث قنوات أو أفلام..." oninput="filterChannels(this.value)">
+                <div class="search-actions">
+                    <button class="filter-btn" onclick="toggleFilters()" title="فلاتر"><i class="fas fa-filter"></i></button>
+                    <button class="sort-btn" onclick="toggleSort()" title="ترتيب"><i class="fas fa-sort-alpha-down"></i></button>
+                </div>
+            </div>
+            <div id="channels-container" class="scroll-list">
+                <div class="loading-spinner" id="channels-loading">
+                    <div class="spinner"></div>
+                </div>
+                <div class="empty-state" id="empty-state" style="display: none;">
+                    <i class="fas fa-tv"></i>
+                    <p>لم يتم تحميل أي قنوات بعد</p>
+                    <p>قم برفع ملف M3U أو اختر دولة لبدء التشغيل</p>
+                </div>
+            </div>
+        </main>
+        
+        <!-- فلاتر متقدمة -->
+        <div class="filters-panel" id="filters-panel">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3>فلاتر البحث</h3>
+                <button class="btn btn-gray" onclick="toggleFilters()"><i class="fas fa-times"></i></button>
+            </div>
+            
+            <div class="filter-group">
+                <h4>النوع</h4>
+                <div class="filter-option">
+                    <input type="checkbox" id="filter-tv" checked onchange="applyFilters()">
+                    <label for="filter-tv">قنوات تلفزيونية</label>
+                </div>
+                <div class="filter-option">
+                    <input type="checkbox" id="filter-vod" checked onchange="applyFilters()">
+                    <label for="filter-vod">أفلام (VOD)</label>
+                </div>
+            </div>
+            
+            <div class="filter-group">
+                <h4>الجودة</h4>
+                <div class="filter-option">
+                    <input type="checkbox" id="filter-hd" onchange="applyFilters()">
+                    <label for="filter-hd">HD فقط</label>
+                </div>
+                <div class="filter-option">
+                    <input type="checkbox" id="filter-fhd" onchange="applyFilters()">
+                    <label for="filter-fhd">Full HD</label>
+                </div>
+                <div class="filter-option">
+                    <input type="checkbox" id="filter-4k" onchange="applyFilters()">
+                    <label for="filter-4k">4K</label>
+                </div>
+            </div>
+            
+            <div class="filter-group">
+                <h4>الفئة</h4>
+                <div class="filter-option">
+                    <input type="checkbox" id="filter-sports" onchange="applyFilters()">
+                    <label for="filter-sports">رياضة</label>
+                </div>
+                <div class="filter-option">
+                    <input type="checkbox" id="filter-news" onchange="applyFilters()">
+                    <label for="filter-news">أخبار</label>
+                </div>
+                <div class="filter-option">
+                    <input type="checkbox" id="filter-movies" onchange="applyFilters()">
+                    <label for="filter-movies">أفلام</label>
+                </div>
+                <div class="filter-option">
+                    <input type="checkbox" id="filter-kids" onchange="applyFilters()">
+                    <label for="filter-kids">أطفال</label>
+                </div>
+            </div>
+            
+            <button class="btn" onclick="clearFilters()" style="width: 100%; margin-top: 20px;">
+                <i class="fas fa-times"></i> مسح الفلاتر
+            </button>
+        </div>
+    </div>
+
+    <div class="bottom-bar">
+        <input type="file" id="m3u-input" accept=".m3u,.m3u8" hidden>
+        <button class="btn" onclick="document.getElementById('m3u-input').click()"><i class="fas fa-file-upload"></i> <span>M3U</span></button>
+        <button class="btn btn-gray" onclick="showVOD()"><i class="fas fa-film"></i> <span>VOD</span></button>
+        <button class="btn btn-gray" onclick="showFavorites()"><i class="fas fa-star"></i> <span>المفضلة</span></button>
+        <button class="btn btn-success" onclick="playRandom()"><i class="fas fa-random"></i> <span>عشوائي</span></button>
+    </div>
+
+    <footer>
+        <p>Copyright &copy; 2026 عماد الدين لمراني | IPTV & VOD Player</p>
+        <p id="player-status">جاهز</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <script src="https://cdn.plyr.io/3.7.8/plyr.polyfilled.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
+    <script>
+        // --- تهيئة النظام ---
+        const video = document.getElementById('player');
+        const player = new Plyr(video, { 
+            autoplay: true,
+            controls: ['play', 'progress', 'current-time', 'mute', 'volume', 'settings', 'fullscreen'],
+            settings: ['quality', 'speed'],
+            quality: { default: 0, options: [] }
+        });
+        
+        let hlsInstance = null;
+        let masterList = [];
+        let filteredList = [];
+        let favorites = JSON.parse(localStorage.getItem('dami_favs')) || [];
+        let currentPlaying = null;
+        let currentSort = 'name';
+        let currentFilters = {};
+        
+        // تهيئة الثيم
+        function initTheme() {
+            const saved = localStorage.getItem('dami_theme');
+            if (saved === 'light') { 
+                document.body.classList.add('light-mode'); 
+                document.getElementById('theme-icon').className = 'fas fa-sun'; 
+            }
+        }
+        
+        function toggleTheme() {
+            const isLight = document.body.classList.toggle('light-mode');
+            localStorage.setItem('dami_theme', isLight ? 'light' : 'dark');
+            document.getElementById('theme-icon').className = isLight ? 'fas fa-sun' : 'fas fa-moon';
+            showToast('تم تغيير الوضع ' + (isLight ? 'النهاري' : 'الليلي'));
+        }
+        
+        // إظهار/إخفاء الشريط الجانبي على الأجهزة المحمولة
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('active');
+        }
+        
+        // إظهار/إخفاء الفلاتر
+        function toggleFilters() {
+            document.getElementById('filters-panel').classList.toggle('active');
+        }
+        
+        // تبديل الترتيب
+        function toggleSort() {
+            const sorts = [
+                { id: 'name', name: 'أبجدي', icon: 'fas fa-sort-alpha-down' },
+                { id: 'name-reverse', name: 'أبجدي عكسي', icon: 'fas fa-sort-alpha-up' },
+                { id: 'hd-first', name: 'HD أولاً', icon: 'fas fa-hd' },
+                { id: 'vod-first', name: 'VOD أولاً', icon: 'fas fa-film' }
+            ];
+            
+            const currentIndex = sorts.findIndex(s => s.id === currentSort);
+            const nextIndex = (currentIndex + 1) % sorts.length;
+            currentSort = sorts[nextIndex].id;
+            
+            // تحديث الأيقونة
+            const sortBtn = document.querySelector('.sort-btn');
+            sortBtn.innerHTML = `<i class="${sorts[nextIndex].icon}"></i>`;
+            sortBtn.title = `ترتيب ${sorts[nextIndex].name}`;
+            
+            sortChannels();
+            showToast(`الترتيب: ${sorts[nextIndex].name}`);
+        }
+        
+        // تطبيق الفلاتر
+        function applyFilters() {
+            const tvChecked = document.getElementById('filter-tv').checked;
+            const vodChecked = document.getElementById('filter-vod').checked;
+            const hdChecked = document.getElementById('filter-hd').checked;
+            const fhdChecked = document.getElementById('filter-fhd').checked;
+            const _4kChecked = document.getElementById('filter-4k').checked;
+            
+            const sportsChecked = document.getElementById('filter-sports').checked;
+            const newsChecked = document.getElementById('filter-news').checked;
+            const moviesChecked = document.getElementById('filter-movies').checked;
+            const kidsChecked = document.getElementById('filter-kids').checked;
+            
+            currentFilters = {
+                tv: tvChecked,
+                vod: vodChecked,
+                hd: hdChecked,
+                fhd: fhdChecked,
+                _4k: _4kChecked,
+                sports: sportsChecked,
+                news: newsChecked,
+                movies: moviesChecked,
+                kids: kidsChecked
+            };
+            
+            filterChannels(document.getElementById('channel-search').value);
+        }
+        
+        function clearFilters() {
+            document.querySelectorAll('#filters-panel input[type="checkbox"]').forEach(cb => cb.checked = true);
+            applyFilters();
+            showToast('تم مسح جميع الفلاتر');
+        }
+        
+        // --- محرك التشغيل المحسن ---
+        function playMedia(item, index) {
+            if (!item || !item.url) return;
+            
+            const cleanUrl = item.url.trim();
+            currentPlaying = item;
+            
+            // تحديث واجهة المستخدم
+            document.querySelectorAll('.item').forEach(el => el.classList.remove('active'));
+            if (index !== undefined) {
+                document.querySelectorAll('.item')[index]?.classList.add('active');
+            }
+            
+            // إظهار مؤشر التحميل
+            document.getElementById('video-loading').classList.add('active');
+            document.getElementById('video-container').classList.add('loading');
+            
+            // تحديث حالة المشغل
+            document.getElementById('player-status').textContent = `جاري تشغيل: ${item.name.substring(0, 50)}...`;
+            
+            // إدارة جودة HLS
+            if (cleanUrl.includes('m3u8') && Hls.isSupported()) {
+                if (hlsInstance) hlsInstance.destroy();
+                
+                hlsInstance = new Hls({
+                    enableWorker: true,
+                    lowLatencyMode: true,
+                    backBufferLength: 90
+                });
+                
+                hlsInstance.loadSource(cleanUrl);
+                hlsInstance.attachMedia(video);
+                
+                hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => {
+                    // إضافة خيارات الجودة
+                    const levels = hlsInstance.levels;
+                    if (levels && levels.length > 1) {
+                        const qualitySelector = document.getElementById('quality-selector');
+                        qualitySelector.innerHTML = '';
+                        levels.forEach((level, i) => {
+                            const btn = document.createElement('button');
+                            btn.className = 'quality-btn';
+                            btn.textContent = `${level.height}p`;
+                            btn.onclick = () => {
+                                hlsInstance.currentLevel = i;
+                                qualitySelector.classList.remove('active');
+                                showToast(`تم تغيير الجودة إلى ${level.height}p`);
+                            };
+                            qualitySelector.appendChild(btn);
+                        });
+                        qualitySelector.classList.add('active');
+                    }
+                    
+                    player.play();
+                    document.getElementById('video-loading').classList.remove('active');
+                    document.getElementById('video-container').classList.remove('loading');
+                    showToast(`تم بدء التشغيل: ${item.name}`);
+                    
+                    // تحديث معلومات المشغل
+                    updatePlayerInfo(item);
+                });
+                
+                hlsInstance.on(Hls.Events.ERROR, (event, data) => {
+                    console.error('HLS error:', data);
+                    if (data.fatal) {
+                        switch(data.type) {
+                            case Hls.ErrorTypes.NETWORK_ERROR:
+                                showToast('خطأ في الشبكة، جاري إعادة المحاولة...', 'error');
+                                hlsInstance.startLoad();
+                                break;
+                            case Hls.ErrorTypes.MEDIA_ERROR:
+                                showToast('خطأ في الوسائط، جاري إصلاح...', 'error');
+                                hlsInstance.recoverMediaError();
+                                break;
+                            default:
+                                showToast('خطأ في التشغيل، جرب مصدر آخر', 'error');
+                                hlsInstance.destroy();
+                        }
+                    }
+                });
+            } else {
+                // دعم مباشر للمتصفحات التي تدعم HLS بشكل أصلي
+                if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                    video.src = cleanUrl;
+                    video.addEventListener('loadedmetadata', () => {
+                        player.play();
+                        document.getElementById('video-loading').classList.remove('active');
+                        document.getElementById('video-container').classList.remove('loading');
+                        showToast(`تم بدء التشغيل: ${item.name}`);
+                        updatePlayerInfo(item);
+                    });
+                } else {
+                    showToast('المتصفح لا يدعم هذا النوع من الفيديو', 'error');
+                    document.getElementById('video-loading').classList.remove('active');
+                    document.getElementById('video-container').classList.remove('loading');
+                }
+            }
+            
+            // حفظ آخر قناة تم تشغيلها
+            localStorage.setItem('dami_last_played', JSON.stringify(item));
+        }
+        
+        function updatePlayerInfo(item) {
+            const infoEl = document.getElementById('player-info');
+            const isHD = /hd|1080|720/i.test(item.name);
+            const isVOD = item.isVOD;
+            
+            let info = `<i class="fas fa-tv"></i> ${item.name.substring(0, 40)}`;
+            if (isHD) info += ` | <i class="fas fa-hd"></i> HD`;
+            if (isVOD) info += ` | <i class="fas fa-film"></i> VOD`;
+            
+            infoEl.innerHTML = info;
+            infoEl.classList.add('active');
+            
+            // إخفاء المعلومات بعد 5 ثواني
+            setTimeout(() => {
+                infoEl.classList.remove('active');
+            }, 5000);
+        }
+        
+        function showInfo() {
+            if (!currentPlaying) {
+                showToast('لا يوجد محتوى قيد التشغيل', 'info');
+                return;
+            }
+            
+            const info = `
+                <strong>${currentPlaying.name}</strong><br>
+                ${currentPlaying.isVOD ? 'فيلم (VOD)' : 'قناة تلفزيونية'}<br>
+                ${currentPlaying.url ? `مصدر: ${currentPlaying.url.substring(0, 50)}...` : ''}
+            `;
+            
+            alert(info);
+        }
+        
+        // --- جلب البيانات وفك تشفير M3U ---
+        async function loadM3UFromUrl(url, countryName = '') {
+            showLoading('countries');
+            
+            try {
+                const res = await fetch(url);
+                if (!res.ok) throw new Error(`خطأ HTTP: ${res.status}`);
+                
+                const text = await res.text();
+                parseM3U(text);
+                
+                showToast(`تم تحميل ${countryName || 'القنوات'} بنجاح`);
+                hideLoading('countries');
+                
+                // إغلاق الشريط الجانبي على الأجهزة المحمولة
+                if (window.innerWidth <= 768) {
+                    document.getElementById('sidebar').classList.remove('active');
+                }
+            } catch (error) {
+                console.error('خطأ في تحميل M3U:', error);
+                showToast(`خطأ في تحميل القنوات: ${error.message}`, 'error');
+                hideLoading('countries');
+            }
+        }
+        
+        function parseM3U(text) {
+            masterList = [];
+            const lines = text.split('\n');
+            let current = {};
+            
+            lines.forEach(line => {
+                line = line.trim();
+                if (line.startsWith('#EXTINF:')) {
+                    current = {
+                        name: line.split(',').pop().trim(),
+                        logo: (line.match(/tvg-logo="([^"]+)"/) || [])[1] || '',
+                        group: (line.match(/group-title="([^"]+)"/) || [])[1] || '',
+                        id: Date.now() + Math.random()
+                    };
+                    
+                    // تحليل متقدم للمعلومات
+                    const isVOD = /(202[0-9]|hdrip|bluray|movie|film|فيلم|مسلسل)/i.test(current.name);
+                    const isHD = /(1080|720|hd)/i.test(current.name);
+                    const isSports = /(رياض|sport|كرة|كورة|football)/i.test(current.name);
+                    const isNews = /(إخب|news|الأخبار|الجزيرة|العربية)/i.test(current.name);
+                    const isKids = /(أطف|kids|كرتون|cartoon)/i.test(current.name);
+                    
+                    current.isVOD = isVOD;
+                    current.isHD = isHD;
+                    current.category = isSports ? 'رياضة' : isNews ? 'أخبار' : isKids ? 'أطفال' : isVOD ? 'أفلام' : 'عام';
+                    
+                } else if (line.startsWith('http')) {
+                    current.url = line;
+                    current.favorite = favorites.some(fav => fav.url === current.url);
+                    masterList.push({ ...current });
+                }
+            });
+            
+            // إخفاء حالة "فارغ"
+            document.getElementById('empty-state').style.display = 'none';
+            
+            renderList(masterList);
+        }
+        
+        function renderList(list) {
+            filteredList = [...list];
+            const container = document.getElementById('channels-container');
+            container.innerHTML = '';
+            
+            if (list.length === 0) {
+                document.getElementById('empty-state').style.display = 'block';
+                return;
+            }
+            
+            // تطبيق الفرز
+            sortList(list);
+            
+            // تقييد العرض لأداء أفضل
+            const displayList = list.slice(0, 1000);
+            
+            displayList.forEach((item, index) => {
+                const div = document.createElement('div');
+                div.className = `item ${item.favorite ? 'favorite' : ''}`;
+                div.innerHTML = `
+                    <img src="${item.logo || 'https://via.placeholder.com/40/222/fff?text=TV'}" 
+                         onerror="this.src='https://via.placeholder.com/40/222/fff?text=TV'">
+                    <div class="item-content">
+                        <div class="item-title">${escapeHtml(item.name)}</div>
+                        <div class="item-meta">
+                            ${item.category ? `<span>${item.category}</span>` : ''}
+                            ${item.isVOD ? '<span class="vod-badge">VOD</span>' : ''}
+                            ${item.isHD ? '<span class="hd-badge">HD</span>' : ''}
+                            ${item.group ? `<span>${item.group}</span>` : ''}
+                        </div>
+                    </div>
+                    <button class="favorite-btn ${item.favorite ? 'active' : ''}" 
+                            onclick="toggleFavorite(event, ${index})">
+                        <i class="fas fa-star"></i>
+                    </button>
+                `;
+                div.onclick = (e) => {
+                    if (!e.target.closest('.favorite-btn')) {
+                        playMedia(item, index);
+                    }
+                };
+                container.appendChild(div);
+            });
+            
+            // التمرير إلى العنصر النشط
+            if (currentPlaying) {
+                const activeIndex = displayList.findIndex(item => item.url === currentPlaying.url);
+                if (activeIndex > -1) {
+                    const items = container.getElementsByClassName('item');
+                    if (items[activeIndex]) {
+                        items[activeIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        items[activeIndex].classList.add('active');
+                    }
+                }
+            }
+        }
+        
+        function sortList(list) {
+            switch(currentSort) {
+                case 'name':
+                    list.sort((a, b) => a.name.localeCompare(b.name, 'ar'));
+                    break;
+                case 'name-reverse':
+                    list.sort((a, b) => b.name.localeCompare(a.name, 'ar'));
+                    break;
+                case 'hd-first':
+                    list.sort((a, b) => (b.isHD || false) - (a.isHD || false) || a.name.localeCompare(b.name, 'ar'));
+                    break;
+                case 'vod-first':
+                    list.sort((a, b) => (b.isVOD || false) - (a.isVOD || false) || a.name.localeCompare(b.name, 'ar'));
+                    break;
+            }
+        }
+        
+        function sortChannels() {
+            sortList(filteredList);
+            renderList(filteredList);
+        }
+        
+        function filterChannels(q) {
+            let filtered = masterList;
+            
+            // تطبيق البحث النصي
+            if (q && q.trim()) {
+                const query = q.toLowerCase().trim();
+                filtered = filtered.filter(c => 
+                    c.name.toLowerCase().includes(query) || 
+                    (c.group && c.group.toLowerCase().includes(query))
+                );
+            }
+            
+            // تطبيق الفلاتر
+            if (currentFilters) {
+                filtered = filtered.filter(c => {
+                    // فلاتر النوع
+                    if (!currentFilters.tv && !c.isVOD) return false;
+                    if (!currentFilters.vod && c.isVOD) return false;
+                    
+                    // فلاتر الجودة
+                    if (currentFilters.hd && !c.isHD) return false;
+                    if (currentFilters.fhd && !/1080|full.hd/i.test(c.name)) return false;
+                    if (currentFilters._4k && !/4k|2160/i.test(c.name)) return false;
+                    
+                    // فلاتر الفئة
+                    if (currentFilters.sports && c.category !== 'رياضة') return false;
+                    if (currentFilters.news && c.category !== 'أخبار') return false;
+                    if (currentFilters.movies && c.category !== 'أفلام') return false;
+                    if (currentFilters.kids && c.category !== 'أطفال') return false;
+                    
+                    return true;
+                });
+            }
+            
+            filteredList = filtered;
+            renderList(filtered);
+        }
+        
+        function showVOD() {
+            const vodList = masterList.filter(c => c.isVOD);
+            filteredList = vodList;
+            renderList(vodList);
+            document.getElementById('channel-search').placeholder = "بحث في الأفلام و VOD...";
+            document.getElementById('channel-search').value = '';
+            showToast(`عرض الأفلام (${vodList.length})`);
+        }
+        
+        function showFavorites() {
+            filteredList = favorites;
+            renderList(favorites);
+            document.getElementById('channel-search').placeholder = "بحث في المفضلة...";
+            document.getElementById('channel-search').value = '';
+            showToast(`عرض المفضلة (${favorites.length})`);
+        }
+        
+        function toggleFavorite(event, index) {
+            event.stopPropagation();
+            const item = filteredList[index];
+            const favIndex = favorites.findIndex(fav => fav.url === item.url);
+            
+            if (favIndex > -1) {
+                // إزالة من المفضلة
+                favorites.splice(favIndex, 1);
+                item.favorite = false;
+                showToast('تمت الإزالة من المفضلة');
+            } else {
+                // إضافة إلى المفضلة
+                favorites.push(item);
+                item.favorite = true;
+                showToast('تمت الإضافة إلى المفضلة');
+            }
+            
+            // تحديث الزر
+            const btn = event.target.closest('.favorite-btn');
+            btn.classList.toggle('active');
+            
+            // حفظ في التخزين المحلي
+            localStorage.setItem('dami_favs', JSON.stringify(favorites));
+            
+            // تحديث القائمة إذا كنا في عرض المفضلة
+            if (document.getElementById('channel-search').placeholder.includes('المفضلة')) {
+                showFavorites();
+            }
+        }
+        
+        function filterItems(id, query) {
+            const container = document.getElementById(id);
+            const items = container.getElementsByClassName('item');
+            let visibleCount = 0;
+            
+            for (let item of items) {
+                if (item.classList.contains('loading-spinner')) continue;
+                
+                const display = !query || item.innerText.toLowerCase().includes(query.toLowerCase()) ? 'flex' : 'none';
+                item.style.display = display;
+                if (display === 'flex') visibleCount++;
+            }
+            
+            // إظهار رسالة إذا لم توجد نتائج
+            const noResults = container.querySelector('.no-results');
+            if (visibleCount === 0 && query) {
+                if (!noResults) {
+                    const msg = document.createElement('div');
+                    msg.className = 'empty-state no-results';
+                    msg.innerHTML = `<i class="fas fa-search"></i><p>لا توجد نتائج لـ "${query}"</p>`;
+                    container.appendChild(msg);
+                }
+            } else if (noResults) {
+                noResults.remove();
+            }
+        }
+        
+        function playRandom() {
+            if (filteredList.length === 0) {
+                showToast('لا توجد قنوات متاحة للعب العشوائي', 'info');
+                return;
+            }
+            
+            const randomIndex = Math.floor(Math.random() * filteredList.length);
+            const randomItem = filteredList[randomIndex];
+            playMedia(randomItem, randomIndex);
+            showToast('تشغيل عشوائي');
+        }
+        
+        // --- وظائف مساعدة ---
+        function showLoading(type) {
+            const spinner = document.getElementById(`${type}-loading`);
+            if (spinner) spinner.classList.add('active');
+        }
+        
+        function hideLoading(type) {
+            const spinner = document.getElementById(`${type}-loading`);
+            if (spinner) spinner.classList.remove('active');
+        }
+        
+        function showToast(message, type = 'success') {
+            const backgroundColor = type === 'error' ? '#f44336' : 
+                                  type === 'info' ? '#2196F3' : '#4CAF50';
+            
+            Toastify({
+                text: message,
+                duration: 3000,
+                gravity: "top",
+                position: "left",
+                backgroundColor: backgroundColor,
+                stopOnFocus: true,
+                className: 'toast-arabic',
+                rtl: true
+            }).showToast();
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        // جلب الدول عند البداية
+        async function fetchCountries() {
+            showLoading('countries');
+            
+            try {
+                const res = await fetch('https://iptv-org.github.io/api/countries.json');
+                const data = await res.json();
+                const container = document.getElementById('countries-container');
+                
+                // ترتيب الدول عربياً أولاً
+                const arabCountries = ['SA', 'EG', 'AE', 'QA', 'KW', 'BH', 'OM', 'JO', 'LB', 'SY', 'IQ', 'PS', 'DZ', 'MA', 'TN', 'LY', 'SD', 'SO', 'MR', 'YE'];
+                
+                const sortedData = data.sort((a, b) => {
+                    const aIsArab = arabCountries.includes(a.code);
+                    const bIsArab = arabCountries.includes(b.code);
+                    
+                    if (aIsArab && !bIsArab) return -1;
+                    if (!aIsArab && bIsArab) return 1;
+                    return a.name.localeCompare(b.name, 'ar');
+                });
+                
+                sortedData.forEach(c => {
+                    const div = document.createElement('div');
+                    div.className = 'item';
+                    div.innerHTML = `
+                        <img src="https://flagcdn.com/w40/${c.code.toLowerCase()}.png" 
+                             alt="${c.name}" 
+                             onerror="this.src='https://via.placeholder.com/40/222/fff?text=${c.code}'">
+                        <span>${c.name}</span>
+                    `;
+                    div.onclick = () => {
+                        showToast(`جاري تحميل قنوات ${c.name}...`);
+                        loadM3UFromUrl(
+                            `https://iptv-org.github.io/iptv/countries/${c.code.toLowerCase()}.m3u`,
+                            c.name
+                        );
+                    };
+                    container.appendChild(div);
+                });
+                
+                hideLoading('countries');
+            } catch (error) {
+                console.error('خطأ في تحميل الدول:', error);
+                showToast('خطأ في تحميل قائمة الدول', 'error');
+                hideLoading('countries');
+                
+                // عرض بديل يدوي
+                const container = document.getElementById('countries-container');
+                const fallbackCountries = [
+                    { code: 'eg', name: 'مصر' },
+                    { code: 'sa', name: 'السعودية' },
+                    { code: 'ae', name: 'الإمارات' },
+                    { code: 'qa', name: 'قطر' },
+                    { code: 'us', name: 'الولايات المتحدة' },
+                    { code: 'gb', name: 'المملكة المتحدة' }
+                ];
+                
+                fallbackCountries.forEach(c => {
+                    const div = document.createElement('div');
+                    div.className = 'item';
+                    div.innerHTML = `
+                        <img src="https://flagcdn.com/w40/${c.code}.png" alt="${c.name}">
+                        <span>${c.name}</span>
+                    `;
+                    div.onclick = () => {
+                        showToast(`جاري تحميل قنوات ${c.name}...`);
+                        loadM3UFromUrl(
+                            `https://iptv-org.github.io/iptv/countries/${c.code}.m3u`,
+                            c.name
+                        );
+                    };
+                    container.appendChild(div);
+                });
+            }
+        }
+        
+        // رفع ملف M3U
+        document.getElementById('m3u-input').addEventListener('change', e => {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = ev => {
+                parseM3U(ev.target.result);
+                showToast(`تم تحميل ${file.name} بنجاح`);
+            };
+            reader.readAsText(file);
+            
+            // إعادة تعيين المدخل للسماح برفع نفس الملف مرة أخرى
+            e.target.value = '';
+        });
+        
+        // تحميل آخر قناة تم تشغيلها
+        function loadLastPlayed() {
+            const lastPlayed = localStorage.getItem('dami_last_played');
+            if (lastPlayed) {
+                try {
+                    const item = JSON.parse(lastPlayed);
+                    showToast(`جاري استعادة آخر تشغيل: ${item.name.substring(0, 30)}...`);
+                    // ننتظر قليلاً قبل التشغيل لضمان تحميل الواجهة
+                    setTimeout(() => playMedia(item), 1000);
+                } catch (e) {
+                    console.error('خطأ في تحميل آخر تشغيل:', e);
+                }
+            }
+        }
+        
+        // تهيئة التطبيق
+        document.addEventListener('DOMContentLoaded', () => {
+            initTheme();
+            fetchCountries();
+            loadLastPlayed();
+            
+            // إضافة بعض قنوات البداية الافتراضية
+            const defaultM3U = `#EXTM3U
+#EXTINF:-1 tvg-id="" tvg-name="Al Jazeera Arabic" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Al_Jazeera_English_Logo.svg/1200px-Al_Jazeera_English_Logo.svg.png" group-title="أخبار",Al Jazeera Arabic
+https://live-hls-web-aje.getaj.net/AJE/01.m3u8
+#EXTINF:-1 tvg-id="" tvg-name="Bein Sports 1" tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Bein_Sports_1_logo.svg/1200px-Bein_Sports_1_logo.svg.png" group-title="رياضة",Bein Sports 1
+https://bein-sport.com/bein1.m3u8
+#EXTINF:-1 tvg-id="" tvg-name="Movie: Avengers Endgame 2019" tvg-logo="https://m.media-amazon.com/images/M/MV5BMTc5MDE2ODcwNV5BMl5BanBnXkFtZTgwMzI2NzQ2NzM@._V1_FMjpg_UX1000_.jpg" group-title="أفلام",Avengers Endgame 2019 HD
+https://example.com/movies/avengers.m3u8`;
+            
+            // تحليل الـ M3U الافتراضي
+            parseM3U(defaultM3U);
+            
+            // إضافة مستمعات للأحداث
+            video.addEventListener('waiting', () => {
+                document.getElementById('video-loading').classList.add('active');
+            });
+            
+            video.addEventListener('playing', () => {
+                document.getElementById('video-loading').classList.remove('active');
+                document.getElementById('video-container').classList.remove('loading');
+            });
+            
+            // إغلاق الفلاتر عند النقر خارجها
+            document.addEventListener('click', (e) => {
+                const filtersPanel = document.getElementById('filters-panel');
+                const filterBtn = document.querySelector('.filter-btn');
+                
+                if (filtersPanel.classList.contains('active') && 
+                    !filtersPanel.contains(e.target) && 
+                    !filterBtn.contains(e.target)) {
+                    filtersPanel.classList.remove('active');
+                }
+                
+                // إغلاق الشريط الجانبي على الأجهزة المحمولة
+                if (window.innerWidth <= 768) {
+                    const sidebar = document.getElementById('sidebar');
+                    const menuBtn = document.querySelector('.mobile-menu-btn');
+                    
+                    if (sidebar.classList.contains('active') && 
+                        !sidebar.contains(e.target) && 
+                        !menuBtn.contains(e.target) &&
+                        e.target !== menuBtn) {
+                        sidebar.classList.remove('active');
+                    }
+                }
+            });
+        });
+        
+        // إغلاق لوحة الجودة عند النقر خارجها
+        document.addEventListener('click', (e) => {
+            const qualityPanel = document.getElementById('quality-selector');
+            if (qualityPanel.classList.contains('active') && !qualityPanel.contains(e.target)) {
+                qualityPanel.classList.remove('active');
+            }
+        });
+        
+        // اختصارات لوحة المفاتيح
+        document.addEventListener('keydown', (e) => {
+            // مسافة للعب/إيقاف مؤقت
+            if (e.code === 'Space' && e.target.tagName !== 'INPUT') {
+                e.preventDefault();
+                if (video.paused) video.play();
+                else video.pause();
+            }
+            
+            // F للشاشة الكاملة
+            if (e.code === 'KeyF' && e.target.tagName !== 'INPUT') {
+                e.preventDefault();
+                if (document.fullscreenElement) {
+                    document.exitFullscreen();
+                } else {
+                    document.getElementById('player').requestFullscreen();
+                }
+            }
+            
+            // M لكتم/إلغاء كتم الصوت
+            if (e.code === 'KeyM' && e.target.tagName !== 'INPUT') {
+                e.preventDefault();
+                video.muted = !video.muted;
+            }
+            
+            // السهم الأيمن والأيسر للتقدم/التراجع
+            if (e.code === 'ArrowRight' && e.target.tagName !== 'INPUT') {
+                e.preventDefault();
+                video.currentTime += 10;
+            }
+            if (e.code === 'ArrowLeft' && e.target.tagName !== 'INPUT') {
+                e.preventDefault();
+                video.currentTime -= 10;
+            }
+        });
+    </script>
+</body>
+</html>
