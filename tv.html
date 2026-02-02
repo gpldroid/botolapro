@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+<title>IPTV Pro Max | بث مباشر للقنوات</title>
+
+<meta name="description" content="مشغل IPTV احترافي لمشاهدة القنوات المباشرة بجودة عالية مع دعم ملء الشاشة والمشغل العائم وحفظ التقدم.">
+<meta name="keywords" content="IPTV, بث مباشر, Live TV, M3U8 Player, قنوات مباشرة">
+
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+
+<style>
+:root{
+    --primary:#e50914;
+    --bg:#020617;
+    --card:#0f172a;
+    --soft:#1e293b;
+    --text:#fff;
+}
+body.light{
+    --bg:#f1f5f9;
+    --card:#fff;
+    --soft:#e2e8f0;
+    --text:#0f172a;
+}
+body{
+    margin:0;
+    font-family:'Cairo',sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    display:flex;
+    justify-content:center;
+    height:100vh;
+    overflow:hidden;
+}
+.app-container{
+    width:100%;
+    max-width:520px;
+    height:100%;
+    background:var(--card);
+    display:flex;
+    flex-direction:column;
+}
+
+/* Top Bar */
+.top-bar{
+    display:flex;
+    justify-content:space-between;
+    padding:8px 12px;
+    background:var(--soft);
+}
+.icon-btn{
+    background:none;
+    border:none;
+    color:var(--text);
+    font-size:18px;
+    cursor:pointer;
+}
+
+/* Video */
+.video-wrapper{
+    position:relative;
+    aspect-ratio:16/9;
+    background:#000;
+}
+video{
+    width:100%;
+    height:100%;
+    object-fit:contain;
+}
+
+/* زر التكبير */
+.fullscreen-btn{
+    position:absolute;
+    bottom:10px;
+    left:10px;
+    background:rgba(0,0,0,0.6);
+    color:#fff;
+    border:none;
+    padding:8px 12px;
+    border-radius:8px;
+    cursor:pointer;
+}
+
+/* المحتوى */
+.content-section{flex:1;overflow-y:auto;padding:15px;}
+.nav-tabs{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:15px;}
+.tab-btn{background:var(--soft);border:none;color:var(--text);padding:12px;border-radius:12px;cursor:pointer;font-weight:bold;}
+.tab-btn.active{background:var(--primary);color:white;}
+
+select,input{
+    width:100%;padding:12px;margin-bottom:10px;border-radius:12px;
+    border:none;background:var(--soft);color:var(--text);
+}
+
+.channels-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(95px,1fr));gap:12px;}
+.channel-card{background:var(--soft);border-radius:14px;padding:10px;text-align:center;cursor:pointer;}
+.logo-box{width:55px;height:55px;margin:0 auto 6px;background:white;border-radius:10px;display:flex;align-items:center;justify-content:center;}
+.logo-box img{width:85%;height:85%;object-fit:contain;}
+.channel-name{font-size:11px;font-weight:bold;height:28px;overflow:hidden;}
+
+.footer{
+    text-align:center;
+    padding:6px;
+    font-size:12px;
+    background:var(--soft);
+}
+</style>
+</head>
+
+<body>
+<div class="app-container">
+
+<div class="top-bar">
+    <button class="icon-btn" onclick="toggleTheme()"><i class="fas fa-moon"></i></button>
+    <button class="icon-btn" onclick="miniPlayer()"><i class="fas fa-clone"></i></button>
+</div>
+
+<div class="video-wrapper" id="videoWrapper">
+    <video id="videoPlayer" autoplay playsinline controls></video>
+    <button class="fullscreen-btn" onclick="toggleFullscreen()"><i class="fas fa-expand"></i></button>
+</div>
+
+<div class="content-section">
+    <div class="nav-tabs">
+        <button class="tab-btn active" onclick="changeSource('countries', this)">الدول</button>
+        <button class="tab-btn" onclick="changeSource('languages', this)">اللغات</button>
+    </div>
+
+    <select id="categoryList" onchange="loadChannels(this.value)"></select>
+    <input type="text" placeholder="بحث عن قناة..." oninput="searchChannels(this.value)">
+    <div class="channels-grid" id="channelsGrid"></div>
+</div>
+
+<div class="footer">© 2026 جميع الحقوق محفوظة — عماد الدين لمراني</div>
+</div>
+
+<script>
+const video = document.getElementById('videoPlayer');
+const wrapper = document.getElementById('videoWrapper');
+const hls = new Hls({maxBufferLength:30});
+let allChannels=[], currentType='countries';
+let resumeData = JSON.parse(localStorage.getItem("resumeData")||"{}");
+let currentChannelUrl=null;
+
+/* 🌙 الوضع */
+if(localStorage.getItem("theme")==="light") document.body.classList.add("light");
+function toggleTheme(){
+ document.body.classList.toggle("light");
+ localStorage.setItem("theme",document.body.classList.contains("light")?"light":"dark");
+}
+
+/* 🖼️ مشغل عائم */
+function miniPlayer(){
+ if(document.pictureInPictureEnabled) video.requestPictureInPicture();
+}
+
+/* 🔳 ملء الشاشة احترافي */
+function toggleFullscreen(){
+ if(!document.fullscreenElement){
+     wrapper.requestFullscreen().catch(()=>{});
+ }else{
+     document.exitFullscreen();
+ }
+}
+
+/* 💾 حفظ القناة والتقدم */
+function saveLastChannel(url){localStorage.setItem("lastChannel",url);}
+setInterval(()=>{
+ if(video.currentTime>5 && currentChannelUrl){
+   resumeData[currentChannelUrl]=video.currentTime;
+   localStorage.setItem("resumeData",JSON.stringify(resumeData));
+ }
+},5000);
+
+function playChannel(url){
+ currentChannelUrl=url;
+ saveLastChannel(url);
+
+ if(Hls.isSupported()){
+   hls.loadSource(url);
+   hls.attachMedia(video);
+   hls.on(Hls.Events.MANIFEST_PARSED,()=>{
+     video.play();
+     if(resumeData[url]) video.currentTime=resumeData[url];
+   });
+ }else{
+   video.src=url;
+   video.play();
+ }
+}
+
+/* 🔎 بيانات القنوات */
+async function changeSource(type,btn){
+ document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+ btn.classList.add('active');
+ currentType=type;
+ const res=await fetch(`https://iptv-org.github.io/api/${type}.json`);
+ const data=await res.json();
+ const select=document.getElementById('categoryList');
+ select.innerHTML=data.map(i=>`<option value="${i.code}">${i.name}</option>`).join('');
+ loadChannels(data[0].code);
+}
+
+async function loadChannels(code){
+ const res=await fetch(`https://iptv-org.github.io/iptv/${currentType}/${code.toLowerCase()}.m3u`);
+ const text=await res.text();
+ allChannels=parseM3U(text);
+ renderGrid(allChannels);
+}
+
+function parseM3U(data){
+ const lines=data.split('\n'); const list=[]; let current={};
+ lines.forEach(line=>{
+   if(line.startsWith('#EXTINF')){
+     current.name=line.split(',')[1];
+     const logo=line.match(/tvg-logo="([^"]*)"/);
+     current.logo=logo?logo[1]:'';
+   }else if(line.startsWith('http')){
+     current.url=line.trim();
+     list.push(current); current={};
+   }
+ });
+ return list;
+}
+
+function renderGrid(list){
+ document.getElementById('channelsGrid').innerHTML=list.map(ch=>`
+   <div class="channel-card" onclick="playChannel('${ch.url}')">
+     <div class="logo-box"><img src="${ch.logo}" onerror="this.src='https://via.placeholder.com/60?text=TV'"></div>
+     <div class="channel-name">${ch.name}</div>
+   </div>
+ `).join('');
+}
+
+function searchChannels(q){
+ renderGrid(allChannels.filter(c=>c.name.toLowerCase().includes(q.toLowerCase())));
+}
+
+changeSource('countries',document.querySelector('.tab-btn'));
+const last=localStorage.getItem("lastChannel"); if(last) playChannel(last);
+</script>
+</body>
+</html>
